@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/user"
 	"path/filepath"
 	"reflect"
-	"syscall"
 )
 
 type Config struct {
@@ -23,12 +23,12 @@ type Config struct {
 func LoadConfig() (*Config, error) {
 	conf := &Config{}
 
-	userDir, err := getHomeDir()
+	u, err := user.Current()
 	if err != nil {
 		return conf, err
 	}
 
-	flag.StringVar(&conf.ConfigFile, "configFile", fmt.Sprintf("%s%c.onapp", userDir, os.PathSeparator), "Path to config file for this command")
+	flag.StringVar(&conf.ConfigFile, "configFile", fmt.Sprintf("%s%c.onapp", u.HomeDir, os.PathSeparator), "Path to config file for this command")
 	flag.BoolVar(&conf.Verbose, "v", false, "Verbose logging")
 	flag.Parse()
 
@@ -59,20 +59,6 @@ func LoadConfig() (*Config, error) {
 	}
 
 	return conf, nil
-}
-
-/* Will be fixed in Go 1.2 */
-func getHomeDir() (string, error) {
-	t, err := syscall.OpenCurrentProcessToken()
-	defer t.Close()
-	if err != nil {
-		return "", err
-	}
-	userDir, err := t.GetUserProfileDirectory()
-	if err != nil {
-		return "", err
-	}
-	return userDir, nil
 }
 
 /* Single depth merging, prefers values in `first` over `second` */

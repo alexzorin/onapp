@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"os"
 	"testing"
 )
 
@@ -17,15 +16,5 @@ func TestMergeConfigs(t *testing.T) {
 	}
 	if !merged.Verbose {
 		t.Fatal("Verbose should have been true")
-	}
-}
-
-func TestHomeDir(t *testing.T) {
-	dir, err := getHomeDir()
-	if err != nil {
-		t.Error(err)
-	}
-	if _, err := os.Stat(dir); err != nil {
-		t.Error(err)
 	}
 }
