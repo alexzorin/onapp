@@ -21,7 +21,7 @@ var cmdHandlers = map[string]cmdHandler{
 
 func (c *cli) parse(args []string) {
 	if len(args) == 0 {
-		infoln("\nNo command passed, usage is as follows:")
+		errorln("\nNo command passed, usage is as follows:")
 		printUsage()
 		return
 	}

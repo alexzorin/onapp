@@ -37,7 +37,7 @@ func warnln(args ...interface{}) {
 }
 
 func warnf(fmt string, args ...interface{}) {
-	println(fmt, WARN_COLOR, args)
+	println(fmt, warn_color, args)
 }
 
 func println(format string, color string, args interface{}) {
