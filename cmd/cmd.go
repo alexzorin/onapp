@@ -21,7 +21,7 @@ var cmdHandlers = map[string]cmdHandler{
 
 func (c *CLI) parse(args []string) {
 	if len(args) == 0 {
-		fmt.Println("No command passed, usage is as follows:")
+		Infoln("\nNo command passed, usage is as follows:")
 		printUsage()
 		return
 	}
@@ -31,15 +31,16 @@ func (c *CLI) parse(args []string) {
 			fmt.Println(err)
 		}
 	} else {
-		fmt.Printf("%s is an unknown command\n", args[0])
+		Errorf("\nERROR: %s is an unknown command\n", args[0])
 		printUsage()
 	}
 }
 
 func Start() {
+	Infoln("===> Starting OnApp CLI ...\n")
 	conf, err := LoadConfig()
 	if err != nil {
-		fmt.Println("=== ERROR\n", err)
+		Errorf("=== ERROR\n", err)
 		os.Exit(1)
 	}
 	cli := CLI{conf}
@@ -48,13 +49,15 @@ func Start() {
 }
 
 func printUsage() {
-	fmt.Println("============ USAGE ============")
-	fmt.Println("Available commands:")
+	Infoln("\n===> USAGE")
+	Infoln("Available commands:")
 	for k, v := range cmdHandlers {
-		fmt.Printf("  %s - %s\n", k, v.Description())
+		Infof("  %s - %s\n", k, v.Description())
 	}
-	fmt.Println("General options:")
+	Infoln("\nGeneral options:")
+	InfoToggle(true)
 	flag.PrintDefaults()
+	InfoToggle(false)
 }
 
 func cleanArgs(args []string) []string {

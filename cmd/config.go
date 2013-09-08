@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	ConfigCmdDescription = "Interactive wizard to configure this tool with your OnApp credentials"
+	ConfigCmdDescription = "Configure this tool"
 )
 
 type config struct {
@@ -43,14 +43,14 @@ func LoadConfig() (*config, error) {
 		return conf, err
 	}
 
-	flag.StringVar(&conf.ConfigFile, "configFile", fmt.Sprintf("%s%c.onapp", u.HomeDir, os.PathSeparator), "Path to config file for this command")
+	flag.StringVar(&conf.ConfigFile, "configFile", fmt.Sprintf("%s%c.onapp", u.HomeDir, os.PathSeparator), "Path to config file")
 	flag.BoolVar(&conf.Verbose, "v", false, "Verbose logging")
 	flag.Parse()
 
 	_, err = os.Stat(conf.ConfigFile)
 	var merge *config
 	if err != nil {
-		fmt.Printf("config file '%s' not found, using default values\n", conf.ConfigFile)
+		Warnf("Config file '%s' not found\n", conf.ConfigFile)
 		merge = &config{}
 	} else {
 		rawConf, err := ioutil.ReadFile(conf.ConfigFile)
@@ -70,7 +70,7 @@ func LoadConfig() (*config, error) {
 	}
 
 	if merged.ApiUser == "" || merged.ApiKey == "" || merged.Server == "" {
-		fmt.Printf("Looks like you haven't configured a user yet, try `%s config`\n", filepath.Base(os.Args[0]))
+		Warnf("You haven't configured yet: `%s config`\n", filepath.Base(os.Args[0]))
 	}
 
 	return merged, nil
