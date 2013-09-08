@@ -12,7 +12,11 @@ import (
 	"reflect"
 )
 
-type Config struct {
+const (
+	ConfigCmdDescription = "Interactive wizard to configure this tool with your OnApp credentials"
+)
+
+type config struct {
 	ConfigFile string
 	ApiUser    string
 	ApiKey     string
@@ -20,8 +24,19 @@ type Config struct {
 	Verbose    bool
 }
 
-func LoadConfig() (*Config, error) {
-	conf := &Config{}
+type configCmd struct {
+}
+
+func (c configCmd) Run(args []string, ctx *CLI) error {
+	return nil
+}
+
+func (c configCmd) Description() string {
+	return ConfigCmdDescription
+}
+
+func LoadConfig() (*config, error) {
+	conf := &config{}
 
 	u, err := user.Current()
 	if err != nil {
@@ -33,16 +48,16 @@ func LoadConfig() (*Config, error) {
 	flag.Parse()
 
 	_, err = os.Stat(conf.ConfigFile)
-	var merge *Config
+	var merge *config
 	if err != nil {
-		fmt.Printf("Config file '%s' not found, using default values\n", conf.ConfigFile)
-		merge = &Config{}
+		fmt.Printf("config file '%s' not found, using default values\n", conf.ConfigFile)
+		merge = &config{}
 	} else {
 		rawConf, err := ioutil.ReadFile(conf.ConfigFile)
 		if err != nil {
 			return conf, errors.New(fmt.Sprintf("Error reading from %s: %s", conf.ConfigFile, err.Error()))
 		}
-		confFromFile := &Config{}
+		confFromFile := &config{}
 		err = json.Unmarshal(rawConf, confFromFile)
 		if err != nil {
 			return conf, errors.New(fmt.Sprintf("Error parsing %s: %s", conf.ConfigFile, err.Error()))
@@ -62,8 +77,8 @@ func LoadConfig() (*Config, error) {
 }
 
 /* Single depth merging, prefers values in `first` over `second` */
-func mergeConfigs(first *Config, second *Config) (*Config, error) {
-	merged := &Config{}
+func mergeConfigs(first *config, second *config) (*config, error) {
+	merged := &config{}
 	r1 := reflect.ValueOf(*first)
 	r2 := reflect.ValueOf(*second)
 	for i := 0; i < r1.NumField(); i++ {

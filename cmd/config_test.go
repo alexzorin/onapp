@@ -5,8 +5,8 @@ import (
 )
 
 func TestMergeConfigs(t *testing.T) {
-	c1 := &Config{ApiUser: "a", ApiKey: "abcd"}
-	c2 := &Config{ApiUser: "b", Verbose: true}
+	c1 := &config{ApiUser: "a", ApiKey: "abcd"}
+	c2 := &config{ApiUser: "b", Verbose: true}
 	merged, err := mergeConfigs(c1, c2)
 	if err != nil {
 		t.Error(err)
