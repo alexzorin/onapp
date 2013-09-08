@@ -70,10 +70,10 @@ func LoadConfig() (*config, error) {
 	}
 
 	if merged.ApiUser == "" || merged.ApiKey == "" || merged.Server == "" {
-		return merged, errors.New(fmt.Sprintf("Looks like you haven't configured a user yet, try `%s config`\n", filepath.Base(os.Args[0])))
+		fmt.Printf("Looks like you haven't configured a user yet, try `%s config`\n", filepath.Base(os.Args[0]))
 	}
 
-	return conf, nil
+	return merged, nil
 }
 
 /* Single depth merging, prefers values in `first` over `second` */
