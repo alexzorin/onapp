@@ -13,30 +13,30 @@ const (
 	ESC_STOP    = "m"
 )
 
-func Infof(format string, args ...interface{}) {
+func infof(format string, args ...interface{}) {
 	println(format, "", args)
 }
 
-func Infoln(args ...interface{}) {
+func infoln(args ...interface{}) {
 	println("", "", args)
 }
 
-func InfoToggle(on bool) {
+func infoToggle(on bool) {
 }
 
-func Errorln(args ...interface{}) {
+func errorln(args ...interface{}) {
 	println("%s\n", ERROR_COLOR, args)
 }
 
-func Errorf(fmt string, args ...interface{}) {
+func errorf(fmt string, args ...interface{}) {
 	println(fmt, ERROR_COLOR, args)
 }
 
-func Warnln(args ...interface{}) {
+func warnln(args ...interface{}) {
 	println("%s\n", WARN_COLOR, args)
 }
 
-func Warnf(fmt string, args ...interface{}) {
+func warnf(fmt string, args ...interface{}) {
 	println(fmt, WARN_COLOR, args)
 }
 

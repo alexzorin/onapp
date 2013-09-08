@@ -6,12 +6,12 @@ import (
 	"os"
 )
 
-type CLI struct {
+type cli struct {
 	*config
 }
 
 type cmdHandler interface {
-	Run([]string, *CLI) error
+	Run([]string, *cli) error
 	Description() string
 }
 
@@ -19,9 +19,9 @@ var cmdHandlers = map[string]cmdHandler{
 	"config": configCmd{},
 }
 
-func (c *CLI) parse(args []string) {
+func (c *cli) parse(args []string) {
 	if len(args) == 0 {
-		Infoln("\nNo command passed, usage is as follows:")
+		infoln("\nNo command passed, usage is as follows:")
 		printUsage()
 		return
 	}
@@ -31,33 +31,32 @@ func (c *CLI) parse(args []string) {
 			fmt.Println(err)
 		}
 	} else {
-		Errorf("\nERROR: %s is an unknown command\n", args[0])
+		errorf("\nERROR: %s is an unknown command\n", args[0])
 		printUsage()
 	}
 }
 
 func Start() {
-	Infoln("===> Starting OnApp CLI ...\n")
-	conf, err := LoadConfig()
+	infoln("===> Starting OnApp CLI ...\n")
+	conf, err := loadConfig()
 	if err != nil {
-		Errorf("=== ERROR\n", err)
+		errorf("=== ERROR\n", err)
 		os.Exit(1)
 	}
-	cli := CLI{conf}
-
+	cli := cli{conf}
 	cli.parse(cleanArgs(os.Args[1:]))
 }
 
 func printUsage() {
-	Infoln("\n===> USAGE")
-	Infoln("Available commands:")
+	infoln("\n===> USAGE")
+	infoln("Available commands:")
 	for k, v := range cmdHandlers {
-		Infof("  %s - %s\n", k, v.Description())
+		infof("  %s - %s\n", k, v.Description())
 	}
-	Infoln("\nGeneral options:")
-	InfoToggle(true)
+	infoln("\nGeneral options:")
+	infoToggle(true)
 	flag.PrintDefaults()
-	InfoToggle(false)
+	infoToggle(false)
 }
 
 func cleanArgs(args []string) []string {

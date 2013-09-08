@@ -16,15 +16,15 @@ const (
 
 var wrapper *doscolor.Wrapper
 
-func Infof(fmt string, args ...interface{}) {
+func infof(fmt string, args ...interface{}) {
 	println(fmt, INFO_COLOR, args)
 }
 
-func Infoln(args ...interface{}) {
+func infoln(args ...interface{}) {
 	println("", INFO_COLOR, args)
 }
 
-func InfoToggle(on bool) {
+func infoToggle(on bool) {
 	if on {
 		wrapper.Save()
 		wrapper.Set(INFO_COLOR)
@@ -33,19 +33,19 @@ func InfoToggle(on bool) {
 	}
 }
 
-func Errorln(args ...interface{}) {
+func errorln(args ...interface{}) {
 	println("", ERROR_COLOR, args)
 }
 
-func Errorf(fmt string, args ...interface{}) {
+func errorf(fmt string, args ...interface{}) {
 	println(fmt, ERROR_COLOR, args)
 }
 
-func Warnln(args ...interface{}) {
+func warnln(args ...interface{}) {
 	println("", WARN_COLOR, args)
 }
 
-func Warnf(fmt string, args ...interface{}) {
+func warnf(fmt string, args ...interface{}) {
 	println(fmt, WARN_COLOR, args)
 }
 

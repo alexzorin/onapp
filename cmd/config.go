@@ -27,7 +27,7 @@ type config struct {
 type configCmd struct {
 }
 
-func (c configCmd) Run(args []string, ctx *CLI) error {
+func (c configCmd) Run(args []string, ctx *cli) error {
 	return nil
 }
 
@@ -35,7 +35,7 @@ func (c configCmd) Description() string {
 	return ConfigCmdDescription
 }
 
-func LoadConfig() (*config, error) {
+func loadConfig() (*config, error) {
 	conf := &config{}
 
 	u, err := user.Current()
@@ -50,7 +50,7 @@ func LoadConfig() (*config, error) {
 	_, err = os.Stat(conf.ConfigFile)
 	var merge *config
 	if err != nil {
-		Warnf("Config file '%s' not found\n", conf.ConfigFile)
+		warnf("Config file '%s' not found\n", conf.ConfigFile)
 		merge = &config{}
 	} else {
 		rawConf, err := ioutil.ReadFile(conf.ConfigFile)
@@ -70,7 +70,7 @@ func LoadConfig() (*config, error) {
 	}
 
 	if merged.ApiUser == "" || merged.ApiKey == "" || merged.Server == "" {
-		Warnf("You haven't configured yet: `%s config`\n", filepath.Base(os.Args[0]))
+		warnf("You haven't configured yet: `%s config`\n", filepath.Base(os.Args[0]))
 	}
 
 	return merged, nil
