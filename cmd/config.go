@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	ConfigCmdDescription = "Configure this tool"
+	configCmdDescription = "Configure this tool"
 )
 
 type config struct {
@@ -32,7 +32,7 @@ func (c configCmd) Run(args []string, ctx *cli) error {
 }
 
 func (c configCmd) Description() string {
-	return ConfigCmdDescription
+	return configCmdDescription
 }
 
 func loadConfig() (*config, error) {

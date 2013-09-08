@@ -9,44 +9,44 @@ import (
 )
 
 const (
-	INFO_COLOR  = doscolor.White | doscolor.Bright
-	ERROR_COLOR = doscolor.Red | doscolor.Bright
-	WARN_COLOR  = doscolor.Yellow
+	info_color  = doscolor.White | doscolor.Bright
+	error_color = doscolor.Red | doscolor.Bright
+	warn_color  = doscolor.Yellow
 )
 
 var wrapper *doscolor.Wrapper
 
 func infof(fmt string, args ...interface{}) {
-	println(fmt, INFO_COLOR, args)
+	println(fmt, info_color, args)
 }
 
 func infoln(args ...interface{}) {
-	println("", INFO_COLOR, args)
+	println("", info_color, args)
 }
 
 func infoToggle(on bool) {
 	if on {
 		wrapper.Save()
-		wrapper.Set(INFO_COLOR)
+		wrapper.Set(info_color)
 	} else {
 		wrapper.Restore()
 	}
 }
 
 func errorln(args ...interface{}) {
-	println("", ERROR_COLOR, args)
+	println("", error_color, args)
 }
 
 func errorf(fmt string, args ...interface{}) {
-	println(fmt, ERROR_COLOR, args)
+	println(fmt, error_color, args)
 }
 
 func warnln(args ...interface{}) {
-	println("", WARN_COLOR, args)
+	println("", warn_color, args)
 }
 
 func warnf(fmt string, args ...interface{}) {
-	println(fmt, WARN_COLOR, args)
+	println(fmt, warn_color, args)
 }
 
 func println(format string, color doscolor.Color, args interface{}) {
