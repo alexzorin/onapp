@@ -1,5 +1,6 @@
 {
 	"ApiUser": "user@example.org",
-	"ApiKey": "abcd1234"
-	"Server": "https://dashboard.dynomesh.com.au"
+	"ApiKey": "abcd1234",
+	"Server": "https://dashboard.onapp-example.org",
+	"Verbose": true
 }

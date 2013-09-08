@@ -19,7 +19,7 @@ func (c *CLI) Parse(args []string) {
 func Start() {
 	conf, err := LoadConfig()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("=== ERROR\n", err)
 		os.Exit(1)
 	}
 	cli := CLI{make(map[string]*CmdHandler), conf}
