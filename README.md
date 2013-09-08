@@ -5,6 +5,4 @@ OnApp API for Golang and CLI
 
 This is to be a library for accessing the OnApp API with a Go interface.
 
-In addition, there is to be a command line client that will mimic the feature set of the OnApp dashboard. Install via
-
-`go install github.com/alexzorin/onapp/onapp`
+In addition, there is to be a command line client that will mimic the feature set of the OnApp dashboard. Install via `go install github.com/alexzorin/onapp/onapp`
