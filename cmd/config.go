@@ -76,7 +76,7 @@ func loadConfig() (*config, error) {
 	}
 
 	if merged.ApiUser == "" || merged.ApiKey == "" || merged.Server == "" {
-		log.Warnf("You haven't configured yet: `%s config`\n", filepath.Base(os.Args[0]))
+		log.Warnf("You haven't configured yet. Try `%s config`.\n", filepath.Base(os.Args[0]))
 	}
 
 	return merged, nil

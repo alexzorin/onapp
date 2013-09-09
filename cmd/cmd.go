@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"flag"
-	"fmt"
 	"github.com/alexzorin/onapp/cmd/log"
 	"os"
 	"path/filepath"
@@ -26,17 +25,17 @@ var cmdHandlers = map[string]cmdHandler{
 
 func (c *cli) parse(args []string) {
 	if len(args) == 0 {
-		log.Errorln("\nNo command passed")
+		log.Errorln("No command passed")
 		printUsage()
 		return
 	}
 	if handler, ok := cmdHandlers[args[0]]; ok {
 		err := handler.Run(args[1:], c)
 		if err != nil {
-			fmt.Println(err)
+			log.Errorln(err)
 		}
 	} else {
-		log.Errorf("\nERROR: %s is an unknown command\n", args[0])
+		log.Errorf("%s is an unknown command", args[0])
 		printUsage()
 	}
 }
@@ -44,7 +43,7 @@ func (c *cli) parse(args []string) {
 func Start() {
 	conf, err := loadConfig()
 	if err != nil {
-		log.Errorf("=== ERROR\n", err)
+		log.Errorf(err.Error())
 		os.Exit(1)
 	}
 	cli := cli{conf, filepath.Base(os.Args[0])}

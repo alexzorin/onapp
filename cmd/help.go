@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"errors"
+	"fmt"
 	"github.com/alexzorin/onapp/cmd/log"
 )
 
@@ -20,7 +22,7 @@ func (c helpCmd) Run(args []string, ctx *cli) error {
 	if handler, ok := cmdHandlers[args[0]]; ok {
 		handler.Help(args[1:])
 	} else {
-		log.Errorf("Command '%s' not found\n", args[0])
+		return errors.New(fmt.Sprintf("Command '%s' not found", args[0]))
 	}
 	return nil
 }
