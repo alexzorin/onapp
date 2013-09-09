@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -11,6 +12,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"reflect"
+	"strings"
 )
 
 const (
@@ -31,6 +33,46 @@ type configCmd struct {
 }
 
 func (c configCmd) Run(args []string, ctx *cli) error {
+
+	log.Infoln("This is the configuration wizard. Please provide the following: \n")
+	reader := bufio.NewReader(os.Stdin)
+
+	log.Infof("Hostname of the OnApp dashboard: ")
+	host, err := reader.ReadString('\n')
+	if err != nil {
+		return err
+	}
+	log.Infof("API Username (generally the email address): ")
+	user, err := reader.ReadString('\n')
+	if err != nil {
+		return err
+	}
+	log.Infof("API Key: ")
+	apiKey, err := reader.ReadString('\n')
+	if err != nil {
+		return err
+	}
+
+	log.Infof("Test these details? [yes/no]: ")
+	doTest, err := reader.ReadString('\n')
+	if err != nil {
+		return err
+	}
+	if strings.ToLower(doTest)[0] == 'y' {
+		log.Warnln("Unimplemented")
+	}
+
+	ctx.config.Server = strings.Trim(host, "\r\n")
+	ctx.config.ApiUser = strings.Trim(user, "\r\n")
+	ctx.config.ApiKey = strings.Trim(apiKey, "\r\n")
+
+	err = ctx.config.save()
+	if err != nil {
+		log.Errorln(err)
+	} else {
+		log.Infoln("\nSaved configuration to", ctx.config.ConfigFile)
+	}
+
 	return nil
 }
 
@@ -40,6 +82,18 @@ func (c configCmd) Description() string {
 
 func (c configCmd) Help(args []string) {
 	log.Infoln(configCmdHelp)
+}
+
+func (c *config) save() error {
+	data, err := json.Marshal(c)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(c.ConfigFile, data, 0)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func loadConfig() (*config, error) {
