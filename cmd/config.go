@@ -15,6 +15,8 @@ import (
 
 const (
 	configCmdDescription = "Configure this tool"
+	configCmdHelp        = "This command is an interactive wizard to help you setup this tool.\n" +
+		"You will need your OnApp dashboard URL, email address and API key to complete it."
 )
 
 type config struct {
@@ -36,6 +38,10 @@ func (c configCmd) Description() string {
 	return configCmdDescription
 }
 
+func (c configCmd) Help(args []string) {
+	log.Infoln(configCmdHelp)
+}
+
 func loadConfig() (*config, error) {
 	conf := &config{}
 
@@ -51,7 +57,6 @@ func loadConfig() (*config, error) {
 	_, err = os.Stat(conf.ConfigFile)
 	var merge *config
 	if err != nil {
-		log.Warnf("Config file '%s' not found\n", conf.ConfigFile)
 		merge = &config{}
 	} else {
 		rawConf, err := ioutil.ReadFile(conf.ConfigFile)
