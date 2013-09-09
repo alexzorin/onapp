@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/alexzorin/onapp/cmd/log"
 	"io/ioutil"
 	"os"
 	"os/user"
@@ -50,7 +51,7 @@ func loadConfig() (*config, error) {
 	_, err = os.Stat(conf.ConfigFile)
 	var merge *config
 	if err != nil {
-		warnf("Config file '%s' not found\n", conf.ConfigFile)
+		log.Warnf("Config file '%s' not found\n", conf.ConfigFile)
 		merge = &config{}
 	} else {
 		rawConf, err := ioutil.ReadFile(conf.ConfigFile)
@@ -70,7 +71,7 @@ func loadConfig() (*config, error) {
 	}
 
 	if merged.ApiUser == "" || merged.ApiKey == "" || merged.Server == "" {
-		warnf("You haven't configured yet: `%s config`\n", filepath.Base(os.Args[0]))
+		log.Warnf("You haven't configured yet: `%s config`\n", filepath.Base(os.Args[0]))
 	}
 
 	return merged, nil

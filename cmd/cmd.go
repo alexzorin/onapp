@@ -3,6 +3,7 @@ package cmd
 import (
 	"flag"
 	"fmt"
+	"github.com/alexzorin/onapp/cmd/log"
 	"os"
 )
 
@@ -21,7 +22,7 @@ var cmdHandlers = map[string]cmdHandler{
 
 func (c *cli) parse(args []string) {
 	if len(args) == 0 {
-		errorln("\nNo command passed, usage is as follows:")
+		log.Errorln("\nNo command passed, usage is as follows:")
 		printUsage()
 		return
 	}
@@ -31,16 +32,15 @@ func (c *cli) parse(args []string) {
 			fmt.Println(err)
 		}
 	} else {
-		errorf("\nERROR: %s is an unknown command\n", args[0])
+		log.Errorf("\nERROR: %s is an unknown command\n", args[0])
 		printUsage()
 	}
 }
 
 func Start() {
-	infoln("===> Starting OnApp CLI ...\n")
 	conf, err := loadConfig()
 	if err != nil {
-		errorf("=== ERROR\n", err)
+		log.Errorf("=== ERROR\n", err)
 		os.Exit(1)
 	}
 	cli := cli{conf}
@@ -48,15 +48,15 @@ func Start() {
 }
 
 func printUsage() {
-	infoln("\n===> USAGE")
-	infoln("Available commands:")
+	log.Infoln("\n===> USAGE")
+	log.Infoln("Available commands:")
 	for k, v := range cmdHandlers {
-		infof("  %s - %s\n", k, v.Description())
+		log.Infof("  %s - %s\n", k, v.Description())
 	}
-	infoln("\nGeneral options:")
-	infoToggle(true)
+	log.Infoln("\nGeneral options:")
+	log.InfoToggle(true)
 	flag.PrintDefaults()
-	infoToggle(false)
+	log.InfoToggle(false)
 }
 
 func cleanArgs(args []string) []string {

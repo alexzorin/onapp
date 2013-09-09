@@ -1,6 +1,6 @@
 // +build !windows
 
-package cmd
+package log
 
 import (
 	"fmt"
@@ -13,30 +13,30 @@ const (
 	esc_stop    = "m"
 )
 
-func infof(format string, args ...interface{}) {
+func Infof(format string, args ...interface{}) {
 	println(format, "", args)
 }
 
-func infoln(args ...interface{}) {
+func Infoln(args ...interface{}) {
 	println("", "", args)
 }
 
-func infoToggle(on bool) {
+func InfoToggle(on bool) {
 }
 
-func errorln(args ...interface{}) {
+func Errorln(args ...interface{}) {
 	println("%s\n", error_color, args)
 }
 
-func errorf(fmt string, args ...interface{}) {
+func Errorf(fmt string, args ...interface{}) {
 	println(fmt, error_color, args)
 }
 
-func warnln(args ...interface{}) {
+func Warnln(args ...interface{}) {
 	println("%s\n", warn_color, args)
 }
 
-func warnf(fmt string, args ...interface{}) {
+func Warnf(fmt string, args ...interface{}) {
 	println(fmt, warn_color, args)
 }
 

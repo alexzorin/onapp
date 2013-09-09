@@ -1,6 +1,6 @@
 // build windows
 
-package cmd
+package log
 
 import (
 	"fmt"
@@ -16,15 +16,15 @@ const (
 
 var wrapper *doscolor.Wrapper
 
-func infof(fmt string, args ...interface{}) {
+func Infof(fmt string, args ...interface{}) {
 	println(fmt, info_color, args)
 }
 
-func infoln(args ...interface{}) {
+func Infoln(args ...interface{}) {
 	println("", info_color, args)
 }
 
-func infoToggle(on bool) {
+func InfoToggle(on bool) {
 	if on {
 		wrapper.Save()
 		wrapper.Set(info_color)
@@ -33,19 +33,19 @@ func infoToggle(on bool) {
 	}
 }
 
-func errorln(args ...interface{}) {
+func Errorln(args ...interface{}) {
 	println("", error_color, args)
 }
 
-func errorf(fmt string, args ...interface{}) {
+func Errorf(fmt string, args ...interface{}) {
 	println(fmt, error_color, args)
 }
 
-func warnln(args ...interface{}) {
+func Warnln(args ...interface{}) {
 	println("", warn_color, args)
 }
 
-func warnf(fmt string, args ...interface{}) {
+func Warnf(fmt string, args ...interface{}) {
 	println(fmt, warn_color, args)
 }
 
