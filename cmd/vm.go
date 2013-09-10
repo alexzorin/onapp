@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/alexzorin/onapp/cmd/log"
+	"sort"
 )
 
 const (
@@ -51,8 +52,9 @@ func (c vmCmdList) Run(args []string, ctx *cli) error {
 	if err != nil {
 		return err
 	}
-	for _, vm := range *list {
-		log.Infof("%30.25s   HV-%2d   %-18s   %2d CPUs  %6dM RAM   %-30.25s\n", vm.Label, vm.Hypervisor, vm.BootedStringColored(), vm.Cpus, vm.Memory, vm.Template)
+	sort.Sort(list)
+	for _, vm := range list {
+		log.Infof("%30.25s   HV-%-2d   User#%-4d   %-18s   %2d CPUs  %6dM RAM   %-30.25s\n", vm.Label, vm.Hypervisor, vm.UserId, vm.BootedStringColored(), vm.Cpus, vm.Memory, vm.Template)
 	}
 	return nil
 }

@@ -5,6 +5,10 @@ import (
 	"github.com/alexzorin/onapp/cmd/log"
 )
 
+// sort.Sort'ing over this type will
+// sort by UserId
+type VirtualMachines []VirtualMachine
+
 // The OnApp Virtual Machine as according to /virtual_machines.json
 type VirtualMachine struct {
 	Label      string `json:"label"`
@@ -15,6 +19,7 @@ type VirtualMachine struct {
 	CpuShares  int    `json:"cpu_shares"`
 	Memory     int    `json:"memory"`
 	Template   string `json:"template_label"`
+	UserId     int    `json:"user_id"`
 }
 
 func (vm *VirtualMachine) BootedString() string {
@@ -33,8 +38,20 @@ func (vm *VirtualMachine) BootedStringColored() string {
 	}
 }
 
+func (vms VirtualMachines) Swap(i, j int) {
+	vms[i], vms[j] = vms[j], vms[i]
+}
+
+func (vms VirtualMachines) Len() int {
+	return len(vms)
+}
+
+func (vms VirtualMachines) Less(i, j int) bool {
+	return vms[i].UserId < vms[j].UserId
+}
+
 // Fetches a list of Virtual Machines from the dashboard server
-func (c *Client) GetVirtualMachines() (*[]VirtualMachine, error) {
+func (c *Client) GetVirtualMachines() (VirtualMachines, error) {
 	data, err := c.getReq("virtual_machines.json")
 	if err != nil {
 		return nil, err
@@ -48,5 +65,5 @@ func (c *Client) GetVirtualMachines() (*[]VirtualMachine, error) {
 	for i := range vms {
 		vms[i] = out[i]["virtual_machine"]
 	}
-	return &vms, nil
+	return vms, nil
 }
