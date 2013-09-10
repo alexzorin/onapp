@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/alexzorin/onapp"
 	"github.com/alexzorin/onapp/cmd/log"
 	"io/ioutil"
 	"os"
@@ -58,13 +59,17 @@ func (c configCmd) Run(args []string, ctx *cli) error {
 	if err != nil {
 		return err
 	}
-	if strings.ToLower(doTest)[0] == 'y' {
-		log.Warnln("Unimplemented")
-	}
 
 	ctx.config.Server = strings.Trim(host, "\r\n")
 	ctx.config.ApiUser = strings.Trim(user, "\r\n")
 	ctx.config.ApiKey = strings.Trim(apiKey, "\r\n")
+
+	if strings.ToLower(doTest)[0] == 'y' {
+		err := c.testCredentials(ctx.config.Server, ctx.config.ApiUser, ctx.config.ApiKey)
+		if err != nil {
+			return err
+		}
+	}
 
 	_, err = os.Stat(ctx.config.ConfigFile)
 	if err == nil {
@@ -85,6 +90,18 @@ func (c configCmd) Run(args []string, ctx *cli) error {
 	return nil
 }
 
+func (c configCmd) testCredentials(host string, user string, pass string) error {
+	client, err := onapp.NewClient(host, user, pass)
+	if err != nil {
+		return err
+	}
+	_, err = client.GetProfile()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (c configCmd) Description() string {
 	return configCmdDescription
 }
@@ -98,7 +115,7 @@ func (c *config) save() error {
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(c.ConfigFile, data, 0)
+	err = ioutil.WriteFile(c.ConfigFile, data, 0644)
 	if err != nil {
 		return err
 	}

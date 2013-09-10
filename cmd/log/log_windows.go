@@ -3,6 +3,7 @@
 package log
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/anschelsc/doscolor"
 	"os"
@@ -13,6 +14,8 @@ const (
 	error_color   = doscolor.Red | doscolor.Bright
 	warn_color    = doscolor.Yellow
 	success_color = doscolor.Green | doscolor.Bright
+	GREEN         = success_color
+	RED           = error_color
 )
 
 var wrapper *doscolor.Wrapper
@@ -32,6 +35,11 @@ func Successf(fmt string, args ...interface{}) {
 
 func Successln(args ...interface{}) {
 	println("", success_color, false, args)
+}
+
+// NYI on Windows
+func ColorString(in string, color doscolor.Color) string {
+	return in
 }
 
 func InfoToggle(on bool) {
@@ -66,26 +74,28 @@ func Warnf(format string, args ...interface{}) {
 }
 
 func println(format string, color doscolor.Color, pad bool, args interface{}) {
+	var buf bytes.Buffer
 	if wrapper == nil {
 		wrapper = doscolor.NewWrapper(os.Stdout)
 	}
-	wrapper.Save()
 	var c doscolor.Color
 	c |= color
-	wrapper.Set(c)
 	if pad && !padded {
-		fmt.Println()
+		buf.WriteByte('\n')
 	}
 	if format == "" {
-		fmt.Println((args.([]interface{}))...)
+		fmt.Fprintln(&buf, (args.([]interface{}))...)
 	} else {
-		fmt.Printf(format, (args.([]interface{}))...)
+		fmt.Fprintf(&buf, format, (args.([]interface{}))...)
 	}
-	wrapper.Restore()
 	if pad && !padded {
-		fmt.Println()
+		buf.WriteByte('\n')
 		padded = true
 	} else {
 		padded = false
 	}
+	wrapper.Save()
+	wrapper.Set(c)
+	fmt.Printf(buf.String())
+	wrapper.Restore()
 }

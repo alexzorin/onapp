@@ -3,6 +3,7 @@
 package log
 
 import (
+	"bytes"
 	"fmt"
 )
 
@@ -12,9 +13,20 @@ const (
 	success_color = "32"
 	esc_start     = "\x1b["
 	esc_stop      = "m"
+	esc_default   = "0"
+	GREEN         = "32"
+	RED           = error_color
 )
 
 var padded bool
+
+func ColorString(in string, color string) string {
+	var buf bytes.Buffer
+	fmt.Fprintf(&buf, "%s%s%s", esc_start, color, esc_stop)
+	fmt.Fprintf(&buf, in)
+	fmt.Fprintf(&buf, "%s%s%s", esc_start, esc_default, esc_stop)
+	return buf.String()
+}
 
 func Infof(format string, args ...interface{}) {
 	println(format, "", false, args)
@@ -58,20 +70,22 @@ func Warnf(format string, args ...interface{}) {
 }
 
 func println(format string, color string, pad bool, args interface{}) {
+	var buf bytes.Buffer
 	if pad && !padded {
-		fmt.Println()
+		buf.WriteByte('\n')
 	}
-	fmt.Printf("%s%s", esc_start, color)
+	fmt.Fprintf(&buf, "%s%s%s", esc_start, color, esc_stop)
 	if format == "" {
-		fmt.Println((args.([]interface{}))...)
+		fmt.Fprintln(&buf, (args.([]interface{}))...)
 	} else {
-		fmt.Printf(format, (args.([]interface{}))...)
+		fmt.Fprintf(&buf, format, (args.([]interface{}))...)
 	}
-	fmt.Printf(esc_stop)
+	fmt.Fprintf(&buf, "%s%s%s", esc_start, esc_default, esc_stop)
 	if pad && !padded {
-		fmt.Println()
+		buf.WriteByte('\n')
 		padded = true
 	} else {
 		padded = false
 	}
+	fmt.Printf(buf.String())
 }

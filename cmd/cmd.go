@@ -1,7 +1,10 @@
 package cmd
 
 import (
+	"errors"
 	"flag"
+	"fmt"
+	"github.com/alexzorin/onapp"
 	"github.com/alexzorin/onapp/cmd/log"
 	"os"
 	"path/filepath"
@@ -9,17 +12,27 @@ import (
 
 type cli struct {
 	*config
-	caller string
+	caller    string
+	apiClient *onapp.Client
 }
 
 type cmdHandler interface {
 	Run([]string, *cli) error
 	Description() string
+}
+
+type cmdHandlerHelp interface {
 	Help([]string)
+}
+
+type cmdHandlerSubhandlers interface {
+	Handlers() *map[string]cmdHandler
 }
 
 var cmdHandlers = map[string]cmdHandler{
 	"config": configCmd{},
+	"vm":     vmCmd{},
+	"test":   testCmd{},
 	"help":   helpCmd{},
 }
 
@@ -46,8 +59,20 @@ func Start() {
 		log.Errorf(err.Error())
 		os.Exit(1)
 	}
-	cli := cli{conf, filepath.Base(os.Args[0])}
+	cl, err := onapp.NewClient(conf.Server, conf.ApiUser, conf.ApiKey)
+	if err != nil {
+		log.Errorf(err.Error())
+	}
+	cli := cli{conf, filepath.Base(os.Args[0]), cl}
 	cli.parse(cleanArgs(os.Args[1:]))
+}
+
+func (c *cli) subhandle(handler cmdHandlerSubhandlers, args []string) error {
+	sub, ok := (*handler.Handlers())[args[0]]
+	if ok {
+		return sub.Run(args[1:], c)
+	}
+	return errors.New(fmt.Sprintf("Sub-command %s doesn't exist", args[0]))
 }
 
 func printUsage() {
