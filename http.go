@@ -2,12 +2,10 @@ package onapp
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"reflect"
 )
 
 var cl http.Client
@@ -52,27 +50,5 @@ func (c *Client) makeUri(toConcat ...string) string {
 // * TestUnmarshalInner expects wrap by "outer":{}
 // * /profile.json wrapped by "user":{}
 type jsonOuterFields struct {
-	Outer testStruct
-	User  Profile
-}
-
-type testStruct struct {
-	Inner int
-}
-
-// Since OnApp pointlessly wraps many of their API responses, we sometimes only want to
-// unmarshal from an inner element. This prevents our structs from needless depth.
-// This will unmarshal from a named top-level element.
-func (c *Client) unmarshalInner(raw []byte, name string) (interface{}, error) {
-	var iface jsonOuterFields
-	err := json.Unmarshal(raw, &iface)
-	if err != nil {
-		return nil, err
-	}
-	rv := reflect.ValueOf(iface)
-	outerv := rv.FieldByName(name)
-	if !outerv.IsValid() {
-		return nil, errors.New(fmt.Sprintf("Outer field %s was not found", name))
-	}
-	return outerv.Interface(), nil
+	User Profile
 }

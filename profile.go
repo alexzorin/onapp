@@ -1,5 +1,9 @@
 package onapp
 
+import (
+	"encoding/json"
+)
+
 // The OnApp user profile as according to /profile.json
 type Profile struct {
 	FirstName string `json:"first_name"`
@@ -15,10 +19,10 @@ func (c *Client) GetProfile() (*Profile, error) {
 	if err != nil {
 		return nil, err
 	}
-	inner, err := c.unmarshalInner(data, "User")
+	var j jsonOuterFields
+	err = json.Unmarshal(data, &j)
 	if err != nil {
 		return nil, err
 	}
-	asserted := inner.(Profile)
-	return &asserted, nil
+	return &j.User, nil
 }
