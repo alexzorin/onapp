@@ -52,8 +52,12 @@ func (c *Client) makeUri(toConcat ...string) string {
 // * TestUnmarshalInner expects wrap by "outer":{}
 // * /profile.json wrapped by "user":{}
 type jsonOuterFields struct {
-	Outer interface{}
+	Outer testStruct
 	User  Profile
+}
+
+type testStruct struct {
+	Inner int
 }
 
 // Since OnApp pointlessly wraps many of their API responses, we sometimes only want to

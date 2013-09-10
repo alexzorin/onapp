@@ -24,10 +24,6 @@ func TestMakeUri(t *testing.T) {
 	}
 }
 
-type testStruct struct {
-	Inner int
-}
-
 func TestUnmarshalInner(t *testing.T) {
 	testJson := `{"outer": { "inner": 123 }}`
 	c := newTestClient()
