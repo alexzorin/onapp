@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"errors"
 	"flag"
+	"fmt"
 	"github.com/alexzorin/onapp/cmd/log"
 	"os"
 	"path/filepath"
@@ -15,11 +17,19 @@ type cli struct {
 type cmdHandler interface {
 	Run([]string, *cli) error
 	Description() string
+}
+
+type cmdHandlerHelp interface {
 	Help([]string)
+}
+
+type cmdHandlerSubhandlers interface {
+	Handlers() *map[string]cmdHandler
 }
 
 var cmdHandlers = map[string]cmdHandler{
 	"config": configCmd{},
+	"vm":     vmCmd{},
 	"test":   testCmd{},
 	"help":   helpCmd{},
 }
@@ -51,8 +61,16 @@ func Start() {
 	cli.parse(cleanArgs(os.Args[1:]))
 }
 
+func (c *cli) subhandle(handler cmdHandlerSubhandlers, args []string) error {
+	sub, ok := (*handler.Handlers())[args[0]]
+	if ok {
+		return sub.Run(args[1:], c)
+	}
+	return errors.New(fmt.Sprintf("Sub-command %s doesn't exist", args[0]))
+}
+
 func printUsage() {
-	log.Infoln("\nAvailable commands\n")
+	log.Infoln("Available commands\n")
 	for k, v := range cmdHandlers {
 		log.Infof("  %10s   %s\n", k, v.Description())
 	}
