@@ -3,6 +3,7 @@
 package log
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/anschelsc/doscolor"
 	"os"
@@ -57,6 +58,7 @@ func Warnf(format string, args ...interface{}) {
 }
 
 func println(format string, color doscolor.Color, pad bool, args interface{}) {
+	var buf bytes.Buffer
 	if wrapper == nil {
 		wrapper = doscolor.NewWrapper(os.Stdout)
 	}
@@ -65,18 +67,19 @@ func println(format string, color doscolor.Color, pad bool, args interface{}) {
 	c |= color
 	wrapper.Set(c)
 	if pad && !padded {
-		fmt.Println()
+		buf.WriteByte('\n')
 	}
 	if format == "" {
-		fmt.Println((args.([]interface{}))...)
+		fmt.Fprintln(&buf, (args.([]interface{}))...)
 	} else {
-		fmt.Printf(format, (args.([]interface{}))...)
+		fmt.Fprintf(&buf, format, (args.([]interface{}))...)
 	}
 	wrapper.Restore()
 	if pad && !padded {
-		fmt.Println()
+		buf.WriteByte('\n')
 		padded = true
 	} else {
 		padded = false
 	}
+	fmt.Printf(buf.String())
 }
