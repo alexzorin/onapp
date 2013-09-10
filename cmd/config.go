@@ -53,7 +53,7 @@ func (c configCmd) Run(args []string, ctx *cli) error {
 		return err
 	}
 
-	log.Infof("Test these details? [yes/no]: ")
+	log.Infof("Test these details? [y/n]: ")
 	doTest, err := reader.ReadString('\n')
 	if err != nil {
 		return err
@@ -66,11 +66,20 @@ func (c configCmd) Run(args []string, ctx *cli) error {
 	ctx.config.ApiUser = strings.Trim(user, "\r\n")
 	ctx.config.ApiKey = strings.Trim(apiKey, "\r\n")
 
+	_, err = os.Stat(ctx.config.ConfigFile)
+	if err == nil {
+		log.Infof("Config file already exists at '%s', overwrite? [y/n]: ", ctx.config.ConfigFile)
+		cont, err := reader.ReadString('\n')
+		if err != nil || strings.ToLower(cont)[0] != 'y' {
+			return errors.New("User aborted saving configuration")
+		}
+	}
+
 	err = ctx.config.save()
 	if err != nil {
 		log.Errorln(err)
 	} else {
-		log.Infoln("\nSaved configuration to", ctx.config.ConfigFile)
+		log.Successln("\nSaved configuration to", ctx.config.ConfigFile)
 	}
 
 	return nil

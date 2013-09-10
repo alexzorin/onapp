@@ -7,10 +7,11 @@ import (
 )
 
 const (
-	error_color = "31"
-	warn_color  = "33"
-	esc_start   = "\x1b["
-	esc_stop    = "m"
+	error_color   = "31"
+	warn_color    = "33"
+	success_color = "32"
+	esc_start     = "\x1b["
+	esc_stop      = "m"
 )
 
 var padded bool
@@ -21,6 +22,14 @@ func Infof(format string, args ...interface{}) {
 
 func Infoln(args ...interface{}) {
 	println("", "", false, args)
+}
+
+func Successf(format string, args ...interface{}) {
+	println(format, success_color, false, args)
+}
+
+func Successln(args ...interface{}) {
+	println("", success_color, false, args)
 }
 
 func InfoToggle(on bool) {

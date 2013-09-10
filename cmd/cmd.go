@@ -35,7 +35,7 @@ func (c *cli) parse(args []string) {
 			log.Errorln(err)
 		}
 	} else {
-		log.Errorf("%s is an unknown command", args[0])
+		log.Errorf("%s is an unknown command\n", args[0])
 		printUsage()
 	}
 }
@@ -51,7 +51,7 @@ func Start() {
 }
 
 func printUsage() {
-	log.Infoln("\nAvailable commands\n")
+	log.Infoln("Available commands\n")
 	for k, v := range cmdHandlers {
 		log.Infof("  %10s   %s\n", k, v.Description())
 	}

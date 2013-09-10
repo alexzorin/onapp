@@ -9,9 +9,10 @@ import (
 )
 
 const (
-	info_color  = doscolor.White | doscolor.Bright
-	error_color = doscolor.Red | doscolor.Bright
-	warn_color  = doscolor.Yellow
+	info_color    = doscolor.White | doscolor.Bright
+	error_color   = doscolor.Red | doscolor.Bright
+	warn_color    = doscolor.Yellow
+	success_color = doscolor.Green | doscolor.Bright
 )
 
 var wrapper *doscolor.Wrapper
@@ -23,6 +24,14 @@ func Infof(fmt string, args ...interface{}) {
 
 func Infoln(args ...interface{}) {
 	println("", info_color, false, args)
+}
+
+func Successf(fmt string, args ...interface{}) {
+	println(fmt, success_color, false, args)
+}
+
+func Successln(args ...interface{}) {
+	println("", success_color, false, args)
 }
 
 func InfoToggle(on bool) {

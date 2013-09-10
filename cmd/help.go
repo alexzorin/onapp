@@ -32,6 +32,6 @@ func (c helpCmd) Description() string {
 }
 
 func (c helpCmd) Help(args []string) {
-	log.Infoln(helpCmdHelp)
+	log.Infoln(helpCmdHelp, "\n")
 	printUsage()
 }
