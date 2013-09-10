@@ -89,7 +89,7 @@ func (c *config) save() error {
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(c.ConfigFile, data, 0)
+	err = ioutil.WriteFile(c.ConfigFile, data, 0644)
 	if err != nil {
 		return err
 	}
