@@ -3,6 +3,7 @@
 package log
 
 import (
+	"bytes"
 	"fmt"
 )
 
@@ -11,6 +12,7 @@ const (
 	warn_color  = "33"
 	esc_start   = "\x1b["
 	esc_stop    = "m"
+	esc_default = "0"
 )
 
 var padded bool
@@ -49,20 +51,22 @@ func Warnf(format string, args ...interface{}) {
 }
 
 func println(format string, color string, pad bool, args interface{}) {
+	var buf bytes.Buffer
 	if pad && !padded {
-		fmt.Println()
+		buf.WriteByte('\n')
 	}
-	fmt.Printf("%s%s", esc_start, color)
+	fmt.Fprintf(&buf, "%s%s%s", esc_start, color, esc_stop)
 	if format == "" {
-		fmt.Println((args.([]interface{}))...)
+		fmt.Fprintln(&buf, (args.([]interface{}))...)
 	} else {
-		fmt.Printf(format, (args.([]interface{}))...)
+		fmt.Fprintf(&buf, format, (args.([]interface{}))...)
 	}
-	fmt.Printf(esc_stop)
+	fmt.Fprintf(&buf, "%s%s%s", esc_start, esc_default, esc_stop)
 	if pad && !padded {
-		fmt.Println()
+		buf.WriteByte('\n')
 		padded = true
 	} else {
 		padded = false
 	}
+	fmt.Printf(buf.String())
 }
