@@ -86,7 +86,7 @@ func (c configCmd) testCredentials(host string, user string, pass string) error 
 	if err != nil {
 		return err
 	}
-	_, err := client.GetProfile()
+	_, err = client.GetProfile()
 	if err != nil {
 		return err
 	}
