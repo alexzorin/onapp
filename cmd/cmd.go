@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/alexzorin/onapp"
 	"github.com/alexzorin/onapp/cmd/log"
 	"os"
 	"path/filepath"
@@ -11,7 +12,8 @@ import (
 
 type cli struct {
 	*config
-	caller string
+	caller    string
+	apiClient *onapp.Client
 }
 
 type cmdHandler interface {
@@ -57,7 +59,11 @@ func Start() {
 		log.Errorf(err.Error())
 		os.Exit(1)
 	}
-	cli := cli{conf, filepath.Base(os.Args[0])}
+	cl, err := onapp.NewClient(conf.Server, conf.ApiUser, conf.ApiKey)
+	if err != nil {
+		log.Errorf(err.Error())
+	}
+	cli := cli{conf, filepath.Base(os.Args[0]), cl}
 	cli.parse(cleanArgs(os.Args[1:]))
 }
 

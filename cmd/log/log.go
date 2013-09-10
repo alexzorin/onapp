@@ -13,9 +13,19 @@ const (
 	esc_start   = "\x1b["
 	esc_stop    = "m"
 	esc_default = "0"
+	GREEN       = "32"
+	RED         = error_color
 )
 
 var padded bool
+
+func ColorString(in string, color string) string {
+	var buf bytes.Buffer
+	fmt.Fprintf(&buf, "%s%s%s", esc_start, color, esc_stop)
+	fmt.Fprintf(&buf, in)
+	fmt.Fprintf(&buf, "%s%s%s", esc_start, esc_default, esc_stop)
+	return buf.String()
+}
 
 func Infof(format string, args ...interface{}) {
 	println(format, "", false, args)

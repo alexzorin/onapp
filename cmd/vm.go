@@ -43,9 +43,17 @@ func (c vmCmd) Handlers() *map[string]cmdHandler {
 }
 
 // List command
+
 type vmCmdList struct{}
 
 func (c vmCmdList) Run(args []string, ctx *cli) error {
+	list, err := ctx.apiClient.GetVirtualMachines()
+	if err != nil {
+		return err
+	}
+	for _, vm := range *list {
+		log.Infof("%30.25s   HV-%2d   %-18s   %2d CPUs  %6dM RAM   %-30.25s\n", vm.Label, vm.Hypervisor, vm.BootedStringColored(), vm.Cpus, vm.Memory, vm.Template)
+	}
 	return nil
 }
 
