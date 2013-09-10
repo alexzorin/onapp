@@ -26,6 +26,11 @@ func Infoln(args ...interface{}) {
 	println("", info_color, false, args)
 }
 
+// NYI on Windows
+func ColorString(in string, color string) string {
+	return in
+}
+
 func InfoToggle(on bool) {
 	if on {
 		wrapper.Save()
