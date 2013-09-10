@@ -20,6 +20,7 @@ type cmdHandler interface {
 
 var cmdHandlers = map[string]cmdHandler{
 	"config": configCmd{},
+	"test":   testCmd{},
 	"help":   helpCmd{},
 }
 
