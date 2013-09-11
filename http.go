@@ -25,7 +25,7 @@ func (c *Client) getReq(path ...string) ([]byte, error) {
 	return c.readResponse(resp)
 }
 
-func (c *Client) postPath(body string, path ...string) ([]byte, error) {
+func (c *Client) postReq(body string, path ...string) ([]byte, error) {
 	url := c.makeUri(path...)
 	req, err := http.NewRequest("POST", url, strings.NewReader(body))
 	if err != nil {

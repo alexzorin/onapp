@@ -5,6 +5,7 @@ import (
 	"github.com/alexzorin/onapp/cmd/log"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -14,6 +15,10 @@ const (
 	vmCmdListDescription = "List virtual machines under your account"
 	vmCmdListHelp        = "\nUsage: `onapp vm list [filter]`\n" +
 		"Optionally filter by field query, e.gg onapp vm list Label=prod [Hostname=.com User=1 Memory=1024]. (case sensitive)"
+	vmCmdStartDescription = "Boots a virtual machine"
+	vmCmdStartHelp        = "Boots virtual machine by id: `onapp vm start 1`."
+	vmCmdStopDescription  = "Stops a virtual machine"
+	vmCmdStopHelp         = "Stops a virtual machine by id: `onapp vm stop 1`."
 )
 
 // Base command
@@ -21,7 +26,9 @@ const (
 type vmCmd struct{}
 
 var vmCmdHandlers = map[string]cmdHandler{
-	"list": vmCmdList{},
+	"list":  vmCmdList{},
+	"start": vmCmdStart{},
+	"stop":  vmCmdStop{},
 }
 
 func (c vmCmd) Run(args []string, ctx *cli) error {
@@ -47,7 +54,6 @@ func (c vmCmd) Handlers() *map[string]cmdHandler {
 }
 
 // List command
-
 type vmCmdList struct{}
 
 func (c vmCmdList) Run(args []string, ctx *cli) error {
@@ -86,4 +92,52 @@ func (c vmCmdList) Help(args []string) {
 	log.Infoln(vmCmdListHelp)
 	log.Infoln("\nField names are as follows: ")
 	log.Infof("%+v\n\n", &onapp.VirtualMachine{})
+}
+
+// Start command
+type vmCmdStart struct{}
+
+func (c vmCmdStart) Run(args []string, ctx *cli) error {
+	if len(args) == 0 {
+		c.Help(args)
+		return nil
+	} else {
+		id, err := strconv.Atoi(strings.Trim(args[0], " "))
+		if err != nil {
+			return err
+		}
+		return ctx.apiClient.VirtualMachineStartup(id)
+	}
+}
+
+func (c vmCmdStart) Description() string {
+	return vmCmdStartDescription
+}
+
+func (c vmCmdStart) Help(args []string) {
+	log.Infoln(vmCmdStartHelp)
+}
+
+// Stop command
+type vmCmdStop struct{}
+
+func (c vmCmdStop) Run(args []string, ctx *cli) error {
+	if len(args) == 0 {
+		c.Help(args)
+		return nil
+	} else {
+		id, err := strconv.Atoi(strings.Trim(args[0], " "))
+		if err != nil {
+			return err
+		}
+		return ctx.apiClient.VirtualMachineShutdown(id)
+	}
+}
+
+func (c vmCmdStop) Description() string {
+	return vmCmdStopDescription
+}
+
+func (c vmCmdStop) Help(args []string) {
+	log.Infoln(vmCmdStopHelp)
 }
