@@ -193,7 +193,7 @@ func (ctx *cli) checkVmBusy(id int) error {
 	}
 	if busy.IsValid() {
 		log.Warnf("This VM is currently running a transaction: %s\n", busy.Action)
-		log.Warnf("Do you want to perform this action anyway? [y/n]: ")
+		log.Warnf("Do you want to queue another action anyway? [y/n]: ")
 
 		reader := bufio.NewReader(os.Stdin)
 		resp, err := reader.ReadString('\n')
