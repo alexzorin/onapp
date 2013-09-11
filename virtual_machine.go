@@ -3,6 +3,7 @@ package onapp
 import (
 	"container/list"
 	"encoding/json"
+	"errors"
 	"github.com/alexzorin/onapp/cmd/log"
 	"strconv"
 )
@@ -29,7 +30,7 @@ type VirtualMachine struct {
 
 // Fetches a list of Virtual Machines from the dashboard server
 func (c *Client) GetVirtualMachines() (VirtualMachines, error) {
-	data, err := c.getReq("virtual_machines.json")
+	data, err, _ := c.getReq("virtual_machines.json")
 	if err != nil {
 		return nil, err
 	}
@@ -46,13 +47,44 @@ func (c *Client) GetVirtualMachines() (VirtualMachines, error) {
 }
 
 func (c *Client) VirtualMachineStartup(id int) error {
-	_, err := c.postReq("", "virtual_machines/", strconv.Itoa(id), "/startup.json")
+	_, err, rc := c.postReq("", "virtual_machines/", strconv.Itoa(id), "/startup.json")
+	if rc == 422 {
+		return errors.New("HTTP 422 - VM can't currently be booted")
+	}
 	return err
 }
 
 func (c *Client) VirtualMachineShutdown(id int) error {
-	_, err := c.postReq("", "virtual_machines/", strconv.Itoa(id), "/shutdown.json")
+	_, err, rc := c.postReq("", "virtual_machines/", strconv.Itoa(id), "/shutdown.json")
+	if rc == 422 {
+		return errors.New("HTTP 422 - VM can't currently be shut down")
+	}
 	return err
+}
+
+func (c *Client) VirtualMachineReboot(id int) error {
+	_, err, rc := c.postReq("", "virtual_machines/", strconv.Itoa(id), "/reboot.json")
+	if rc == 422 {
+		return errors.New("HTTP 422 - VM can't currently be rebooted")
+	}
+	return err
+}
+
+func (c *Client) VirtualMachineGetTransactions(vmId int) (Transactions, error) {
+	return c.getTransactions(vmId)
+}
+
+func (c *Client) VirtualMachineGetRunningTransaction(vmId int) (Transaction, error) {
+	txns, err := c.VirtualMachineGetTransactions(vmId)
+	if err != nil {
+		return Transaction{}, err
+	}
+	for _, t := range txns {
+		if t.Status == "running" {
+			return t, nil
+		}
+	}
+	return Transaction{}, nil
 }
 
 func (vm *VirtualMachine) Startup() error {
@@ -63,8 +95,22 @@ func (vm *VirtualMachine) Shutdown() error {
 	return vm.client.VirtualMachineShutdown(vm.Id)
 }
 
+func (vm *VirtualMachine) Reboot() error {
+	return vm.client.VirtualMachineReboot(vm.Id)
+}
+
+func (vm *VirtualMachine) GetTransactions() (Transactions, error) {
+	return vm.client.VirtualMachineGetTransactions(vm.Id)
+}
+
+func (vm *VirtualMachine) GetRunningTransaction() (Transaction, error) {
+	return vm.client.VirtualMachineGetRunningTransaction(vm.Id)
+}
+
 func (vm *VirtualMachine) BootedString() string {
-	if vm.Booted {
+	if vm.Locked {
+		return "Locked"
+	} else if vm.Booted {
 		return "Booted"
 	} else {
 		return "Offline"

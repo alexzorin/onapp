@@ -1,8 +1,11 @@
 package cmd
 
 import (
+	"bufio"
+	"errors"
 	"github.com/alexzorin/onapp"
 	"github.com/alexzorin/onapp/cmd/log"
+	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -15,10 +18,12 @@ const (
 	vmCmdListDescription = "List virtual machines under your account"
 	vmCmdListHelp        = "\nUsage: `onapp vm list [filter]`\n" +
 		"Optionally filter by field query, e.gg onapp vm list Label=prod [Hostname=.com User=1 Memory=1024]. (case sensitive)"
-	vmCmdStartDescription = "Boots a virtual machine"
-	vmCmdStartHelp        = "Boots virtual machine by id: `onapp vm start 1`."
-	vmCmdStopDescription  = "Stops a virtual machine"
-	vmCmdStopHelp         = "Stops a virtual machine by id: `onapp vm stop 1`."
+	vmCmdStartDescription  = "Boots a virtual machine"
+	vmCmdStartHelp         = "Boots virtual machine by id: `onapp vm start 1`."
+	vmCmdStopDescription   = "Stops a virtual machine"
+	vmCmdStopHelp          = "Stops a virtual machine by id: `onapp vm stop 1`."
+	vmCmdRebootDescription = "Reboots a virtual machine"
+	vmCmdRebootHelp        = "Reboots a virtual machine by id: `onapp vm stop 1`."
 )
 
 // Base command
@@ -26,9 +31,10 @@ const (
 type vmCmd struct{}
 
 var vmCmdHandlers = map[string]cmdHandler{
-	"list":  vmCmdList{},
-	"start": vmCmdStart{},
-	"stop":  vmCmdStop{},
+	"list":   vmCmdList{},
+	"start":  vmCmdStart{},
+	"stop":   vmCmdStop{},
+	"reboot": vmCmdReboot{},
 }
 
 func (c vmCmd) Run(args []string, ctx *cli) error {
@@ -106,6 +112,10 @@ func (c vmCmdStart) Run(args []string, ctx *cli) error {
 		if err != nil {
 			return err
 		}
+		busy := ctx.checkVmBusy(id)
+		if busy != nil {
+			return busy
+		}
 		return ctx.apiClient.VirtualMachineStartup(id)
 	}
 }
@@ -130,6 +140,10 @@ func (c vmCmdStop) Run(args []string, ctx *cli) error {
 		if err != nil {
 			return err
 		}
+		busy := ctx.checkVmBusy(id)
+		if busy != nil {
+			return busy
+		}
 		return ctx.apiClient.VirtualMachineShutdown(id)
 	}
 }
@@ -140,4 +154,55 @@ func (c vmCmdStop) Description() string {
 
 func (c vmCmdStop) Help(args []string) {
 	log.Infoln(vmCmdStopHelp)
+}
+
+// Stop command
+type vmCmdReboot struct{}
+
+func (c vmCmdReboot) Run(args []string, ctx *cli) error {
+	if len(args) == 0 {
+		c.Help(args)
+		return nil
+	} else {
+		id, err := strconv.Atoi(strings.Trim(args[0], " "))
+		if err != nil {
+			return err
+		}
+		busy := ctx.checkVmBusy(id)
+		if busy != nil {
+			return busy
+		}
+		return ctx.apiClient.VirtualMachineReboot(id)
+	}
+}
+
+func (c vmCmdReboot) Description() string {
+	return vmCmdRebootDescription
+}
+
+func (c vmCmdReboot) Help(args []string) {
+	log.Infoln(vmCmdRebootHelp)
+}
+
+// Shared funcs
+
+func (ctx *cli) checkVmBusy(id int) error {
+	busy, err := ctx.apiClient.VirtualMachineGetRunningTransaction(id)
+	if err != nil {
+		return err
+	}
+	if busy.IsValid() {
+		log.Warnf("This VM is currently running a transaction: %s\n", busy.Action)
+		log.Warnf("Do you want to perform this action anyway? [y/n]: ")
+
+		reader := bufio.NewReader(os.Stdin)
+		resp, err := reader.ReadString('\n')
+		if err != nil {
+			return err
+		}
+		if strings.ToLower(resp)[0] == 'n' {
+			return errors.New("User cancelled action")
+		}
+	}
+	return nil
 }

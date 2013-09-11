@@ -15,7 +15,7 @@ type Profile struct {
 
 // Fetches the user profile from the dashboard server
 func (c *Client) GetProfile() (*Profile, error) {
-	data, err := c.getReq("profile.json")
+	data, err, _ := c.getReq("profile.json")
 	if err != nil {
 		return nil, err
 	}
