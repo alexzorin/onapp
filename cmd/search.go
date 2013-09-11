@@ -29,7 +29,7 @@ func (c *cli) Search(q search, items list.List) list.List {
 			switch f.Kind() {
 			case reflect.String:
 				sValue := f.String()
-				if strings.Contains(sValue, q.query) {
+				if strings.Contains(strings.ToLower(sValue), strings.ToLower(q.query)) {
 					out.PushBack(item.Value)
 				}
 			case reflect.Int:

@@ -12,6 +12,7 @@ type VirtualMachines []VirtualMachine
 
 // The OnApp Virtual Machine as according to /virtual_machines.json
 type VirtualMachine struct {
+	Id        int    `json:"id"`
 	Label     string `json:"label"`
 	Booted    bool   `json:"booted"`
 	Hostname  string `json:"hostname"`
