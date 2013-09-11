@@ -16,6 +16,7 @@ const (
 	esc_default   = "0"
 	GREEN         = "32"
 	RED           = error_color
+	YELLOW        = warn_color
 )
 
 var padded bool

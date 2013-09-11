@@ -24,6 +24,7 @@ type VirtualMachine struct {
 	Memory    int    `json:"memory"`
 	Template  string `json:"template_label"`
 	User      int    `json:"user_id"`
+	Locked    bool   `json:"locked"`
 }
 
 // Fetches a list of Virtual Machines from the dashboard server
@@ -71,7 +72,9 @@ func (vm *VirtualMachine) BootedString() string {
 }
 
 func (vm *VirtualMachine) BootedStringColored() string {
-	if vm.Booted {
+	if vm.Locked {
+		return log.ColorString("LOCKED", log.YELLOW)
+	} else if vm.Booted {
 		return log.ColorString("Booted", log.GREEN)
 	} else {
 		return log.ColorString("Offline", log.RED)

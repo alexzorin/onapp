@@ -16,6 +16,7 @@ const (
 	success_color = doscolor.Green | doscolor.Bright
 	GREEN         = success_color
 	RED           = error_color
+	YELLOW        = warn_color
 )
 
 var wrapper *doscolor.Wrapper
