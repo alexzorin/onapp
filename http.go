@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 var cl http.Client
@@ -17,18 +18,35 @@ func (c *Client) getReq(path ...string) ([]byte, error) {
 		return nil, err
 	}
 	req.SetBasicAuth(c.apiUser, c.apiPassword)
-
 	resp, err := cl.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	if resp.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("Bad response on '%s' call: HTTP %d - %s", url, resp.StatusCode, resp.Status))
+	return c.readResponse(resp)
+}
+
+func (c *Client) postPath(body string, path ...string) ([]byte, error) {
+	url := c.makeUri(path...)
+	req, err := http.NewRequest("POST", url, strings.NewReader(body))
+	if err != nil {
+		return nil, err
 	}
+	req.SetBasicAuth(c.apiUser, c.apiPassword)
+	resp, err := cl.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	return c.readResponse(resp)
+}
+
+func (c *Client) readResponse(resp *http.Response) ([]byte, error) {
 	defer resp.Body.Close()
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return nil, errors.New(fmt.Sprintf("Bad response on '%s' call: HTTP %d - %s\n%s", resp.Request.URL, resp.StatusCode, resp.Status, data))
 	}
 	return data, nil
 }
