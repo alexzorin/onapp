@@ -1,8 +1,11 @@
 package cmd
 
 import (
+	"github.com/alexzorin/onapp"
 	"github.com/alexzorin/onapp/cmd/log"
+	"regexp"
 	"sort"
+	"strings"
 )
 
 const (
@@ -10,7 +13,7 @@ const (
 	vmCmdHelp            = "See subcommands for help on managing virtual machines."
 	vmCmdListDescription = "List virtual machines under your account"
 	vmCmdListHelp        = "\nUsage: `onapp vm list [filter]`\n" +
-		"Optionally filter by virtual machine label.\n"
+		"Optionally filter by field query, e.gg onapp vm list Label=prod [Hostname=.com User=1 Memory=1024]. (case sensitive)\n"
 )
 
 // Base command
@@ -53,8 +56,24 @@ func (c vmCmdList) Run(args []string, ctx *cli) error {
 		return err
 	}
 	sort.Sort(list)
-	for _, vm := range list {
-		log.Infof("%30.25s   HV-%-2d   User#%-4d   %-18s   %2d CPUs  %6dM RAM   %-30.25s\n", vm.Label, vm.Hypervisor, vm.UserId, vm.BootedStringColored(), vm.Cpus, vm.Memory, vm.Template)
+	var searches []search
+	pattern := regexp.MustCompile("^(\\w+)=(\\w+)$")
+	for _, s := range args {
+		matches := pattern.FindStringSubmatch(strings.Trim(s, " "))
+		if len(matches) != 3 {
+			log.Warnf("Search query '%s' isn't valid\n", s)
+		} else {
+			searches = append(searches, search{matches[1], matches[2]})
+		}
+	}
+	asList := list.AsList()
+	for _, s := range searches {
+		asList = ctx.Search(s, asList)
+	}
+	for item := asList.Front(); item != nil; item = item.Next() {
+		vm := (item.Value).(onapp.VirtualMachine)
+		log.Infof("%30.25s   HV-%-2d   User#%-4d   %-18s   %2d CPUs  %6dM RAM   %-30.25s\n",
+			vm.Label, vm.HV, vm.User, vm.BootedStringColored(), vm.Cpus, vm.Memory, vm.Template)
 	}
 	return nil
 }

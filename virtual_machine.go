@@ -1,6 +1,7 @@
 package onapp
 
 import (
+	"container/list"
 	"encoding/json"
 	"github.com/alexzorin/onapp/cmd/log"
 )
@@ -11,15 +12,15 @@ type VirtualMachines []VirtualMachine
 
 // The OnApp Virtual Machine as according to /virtual_machines.json
 type VirtualMachine struct {
-	Label      string `json:"label"`
-	Booted     bool   `json:"booted"`
-	Hostname   string `json:"hostname"`
-	Hypervisor int    `json:"hypervisor_id"`
-	Cpus       int    `json:"cpus"`
-	CpuShares  int    `json:"cpu_shares"`
-	Memory     int    `json:"memory"`
-	Template   string `json:"template_label"`
-	UserId     int    `json:"user_id"`
+	Label     string `json:"label"`
+	Booted    bool   `json:"booted"`
+	Hostname  string `json:"hostname"`
+	HV        int    `json:"hypervisor_id"`
+	Cpus      int    `json:"cpus"`
+	CpuShares int    `json:"cpu_shares"`
+	Memory    int    `json:"memory"`
+	Template  string `json:"template_label"`
+	User      int    `json:"user_id"`
 }
 
 func (vm *VirtualMachine) BootedString() string {
@@ -38,6 +39,14 @@ func (vm *VirtualMachine) BootedStringColored() string {
 	}
 }
 
+func (vms VirtualMachines) AsList() list.List {
+	var l list.List
+	for _, v := range vms {
+		l.PushBack(v)
+	}
+	return l
+}
+
 func (vms VirtualMachines) Swap(i, j int) {
 	vms[i], vms[j] = vms[j], vms[i]
 }
@@ -47,7 +56,7 @@ func (vms VirtualMachines) Len() int {
 }
 
 func (vms VirtualMachines) Less(i, j int) bool {
-	return vms[i].UserId < vms[j].UserId
+	return vms[i].User < vms[j].User
 }
 
 // Fetches a list of Virtual Machines from the dashboard server
