@@ -13,7 +13,7 @@ const (
 	vmCmdHelp            = "See subcommands for help on managing virtual machines."
 	vmCmdListDescription = "List virtual machines under your account"
 	vmCmdListHelp        = "\nUsage: `onapp vm list [filter]`\n" +
-		"Optionally filter by field query, e.gg onapp vm list Label=prod [Hostname=.com User=1 Memory=1024]. (case sensitive)\n"
+		"Optionally filter by field query, e.gg onapp vm list Label=prod [Hostname=.com User=1 Memory=1024]. (case sensitive)"
 )
 
 // Base command
@@ -84,4 +84,6 @@ func (c vmCmdList) Description() string {
 
 func (c vmCmdList) Help(args []string) {
 	log.Infoln(vmCmdListHelp)
+	log.Infoln("\nField names are as follows: ")
+	log.Infof("%+v\n\n", &onapp.VirtualMachine{})
 }
