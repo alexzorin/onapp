@@ -17,13 +17,15 @@ const (
 	vmCmdHelp            = "See subcommands for help on managing virtual machines."
 	vmCmdListDescription = "List virtual machines under your account"
 	vmCmdListHelp        = "\nUsage: `onapp vm list [filter]`\n" +
-		"Optionally filter by field query, e.gg onapp vm list Label=prod [Hostname=.com User=1 Memory=1024]. (case sensitive)"
-	vmCmdStartDescription  = "Boots a virtual machine"
-	vmCmdStartHelp         = "Boots virtual machine by id: `onapp vm start 1`."
-	vmCmdStopDescription   = "Stops a virtual machine"
-	vmCmdStopHelp          = "Stops a virtual machine by id: `onapp vm stop 1`."
-	vmCmdRebootDescription = "Reboots a virtual machine"
-	vmCmdRebootHelp        = "Reboots a virtual machine by id: `onapp vm stop 1`."
+		"Optionally filter by field query, e.gg onapp vm list [Label=prod Hostname=.com User=1 Memory=1024]. (case sensitive)"
+	vmCmdStartDescription        = "Boots a virtual machine"
+	vmCmdStartHelp               = "Boots virtual machine by id: `onapp vm start <id>."
+	vmCmdStopDescription         = "Stops a virtual machine"
+	vmCmdStopHelp                = "Stops a virtual machine by id: `onapp vm stop <id>`."
+	vmCmdRebootDescription       = "Reboots a virtual machine"
+	vmCmdRebootHelp              = "Reboots a virtual machine by id: `onapp vm stop <id>`."
+	vmCmdTransactionsDescription = "Lists recent transactions on a virtual machine"
+	vmCmdTransactionsHelp        = "Usage: `onapp vm transactions <id> [number_to_list]`"
 )
 
 // Base command
@@ -35,6 +37,7 @@ var vmCmdHandlers = map[string]cmdHandler{
 	"start":  vmCmdStart{},
 	"stop":   vmCmdStop{},
 	"reboot": vmCmdReboot{},
+	"tx":     vmCmdTransactions{},
 }
 
 func (c vmCmd) Run(args []string, ctx *cli) error {
@@ -156,7 +159,7 @@ func (c vmCmdStop) Help(args []string) {
 	log.Infoln(vmCmdStopHelp)
 }
 
-// Stop command
+// Reboot command
 type vmCmdReboot struct{}
 
 func (c vmCmdReboot) Run(args []string, ctx *cli) error {
@@ -182,6 +185,49 @@ func (c vmCmdReboot) Description() string {
 
 func (c vmCmdReboot) Help(args []string) {
 	log.Infoln(vmCmdRebootHelp)
+}
+
+// Transactions command
+type vmCmdTransactions struct{}
+
+func (c vmCmdTransactions) Run(args []string, ctx *cli) error {
+	if len(args) == 0 {
+		c.Help(args)
+		return nil
+	}
+	id, err := strconv.Atoi(strings.Trim(args[0], " "))
+	if err != nil {
+		return nil
+	}
+	nList := 10
+	if len(args) == 2 {
+		nList, err = strconv.Atoi(strings.Trim(args[1], " "))
+		if err != nil {
+			return err
+		}
+	}
+	txns, err := ctx.apiClient.VirtualMachineGetTransactions(id)
+	if err != nil {
+		return err
+	}
+	for i := 0; i <= nList && i < len(txns); i++ {
+		tx := txns[i]
+		t, err := tx.CreatedAtTime()
+		if err != nil {
+			log.Errorln(err)
+			continue
+		}
+		log.Infof("%25.25s   #%-6d   %-25.25s   %10s\n", t, tx.Id, tx.Action, tx.StatusColored())
+	}
+	return nil
+}
+
+func (c vmCmdTransactions) Description() string {
+	return vmCmdTransactionsDescription
+}
+
+func (c vmCmdTransactions) Help(args []string) {
+	log.Infoln(vmCmdTransactionsHelp)
 }
 
 // Shared funcs

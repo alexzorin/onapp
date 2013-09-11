@@ -3,6 +3,8 @@ package onapp
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/alexzorin/onapp/cmd/log"
+	"time"
 )
 
 type Transactions []Transaction
@@ -48,4 +50,19 @@ func (c *Client) getTransactions(vmId int) (Transactions, error) {
 
 func (t *Transaction) IsValid() bool {
 	return t.Id > 0
+}
+
+func (t *Transaction) StatusColored() string {
+	color := log.YELLOW
+	switch t.Status {
+	case "complete":
+		color = log.GREEN
+	case "failed":
+		color = log.RED
+	}
+	return log.ColorString(t.Status, color)
+}
+
+func (tx *Transaction) CreatedAtTime() (time.Time, error) {
+	return time.Parse(time.RFC3339, tx.CreatedAt)
 }
