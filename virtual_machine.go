@@ -53,8 +53,25 @@ func (c *Client) GetVirtualMachines() (VirtualMachines, error) {
 	vms := make([]VirtualMachine, len(out))
 	for i := range vms {
 		vms[i] = out[i]["virtual_machine"]
+		vms[i].client = c
 	}
 	return vms, nil
+}
+
+// Fetches an individual Virtual Machine from the dashboard server
+func (c *Client) GetVirtualMachine(id int) (VirtualMachine, error) {
+	data, err, _ := c.getReq("virtual_machines/", strconv.Itoa(id), ".json")
+	if err != nil {
+		return VirtualMachine{}, err
+	}
+	var out map[string]VirtualMachine
+	err = json.Unmarshal(data, &out)
+	if err != nil {
+		return VirtualMachine{}, err
+	}
+	vm := out["virtual_machine"]
+	vm.client = c
+	return vm, nil
 }
 
 func (c *Client) VirtualMachineStartup(id int) error {

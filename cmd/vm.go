@@ -3,13 +3,16 @@ package cmd
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"github.com/alexzorin/onapp"
 	"github.com/alexzorin/onapp/cmd/log"
 	"os"
+	"os/exec"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
+	"syscall"
 )
 
 const (
@@ -26,6 +29,8 @@ const (
 	vmCmdRebootHelp              = "Reboots a virtual machine by id: `onapp vm stop <id>`."
 	vmCmdTransactionsDescription = "Lists recent transactions on a virtual machine"
 	vmCmdTransactionsHelp        = "Usage: `onapp vm transactions <id> [number_to_list]`"
+	vmCmdSshDescription          = "Uses SSH and the known root password to login to the machine"
+	vmCmdSshHelp                 = "Usage: `onapp vm ssh <id>`, will connect on <first_ip>:22 as root with the known root password"
 )
 
 // Base command
@@ -37,6 +42,7 @@ var vmCmdHandlers = map[string]cmdHandler{
 	"start":  vmCmdStart{},
 	"stop":   vmCmdStop{},
 	"reboot": vmCmdReboot{},
+	"ssh":    vmCmdSsh{},
 	"tx":     vmCmdTransactions{},
 }
 
@@ -85,6 +91,8 @@ func (c vmCmdList) Run(args []string, ctx *cli) error {
 	for _, s := range searches {
 		asList = ctx.Search(s, asList)
 	}
+	log.Infof("%25.25s   #%-3s   %-5s   %-9s   %-10s %6s  %11s   %15s   %-30.25s\n",
+		"Label", "ID", "HV", "User", "Status", "CPUs", "RAM", "First IP", "Template")
 	for item := asList.Front(); item != nil; item = item.Next() {
 		vm := (item.Value).(onapp.VirtualMachine)
 		log.Infof("%25.25s   #%-3d   HV-%-2d   User %-4d   %-18s %2d CPUs  %6dM RAM   %15s   %-30.25s\n",
@@ -197,7 +205,7 @@ func (c vmCmdTransactions) Run(args []string, ctx *cli) error {
 	}
 	id, err := strconv.Atoi(strings.Trim(args[0], " "))
 	if err != nil {
-		return nil
+		return err
 	}
 	nList := 10
 	if len(args) == 2 {
@@ -228,6 +236,45 @@ func (c vmCmdTransactions) Description() string {
 
 func (c vmCmdTransactions) Help(args []string) {
 	log.Infoln(vmCmdTransactionsHelp)
+}
+
+// SSH command
+type vmCmdSsh struct{}
+
+func (c vmCmdSsh) Run(args []string, ctx *cli) error {
+	if len(args) == 0 {
+		c.Help(args)
+		return nil
+	}
+	id, err := strconv.Atoi(strings.Trim(args[0], " "))
+	if err != nil {
+		return err
+	}
+	vm, err := ctx.apiClient.GetVirtualMachine(id)
+	if err != nil {
+		return err
+	}
+	sshCmd, err := exec.LookPath("ssh")
+	if err != nil {
+		return err
+	}
+	sshArgs := []string{"ssh", fmt.Sprintf("root@%s", vm.GetIpAddress().Address)}
+
+	log.Infof("If prompted, enter %s as the password\n", vm.RootPassword)
+
+	err = syscall.Exec(sshCmd, sshArgs, os.Environ())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c vmCmdSsh) Description() string {
+	return vmCmdSshDescription
+}
+
+func (c vmCmdSsh) Help(args []string) {
+	log.Infoln(vmCmdSshHelp)
 }
 
 // Shared funcs
