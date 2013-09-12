@@ -132,7 +132,7 @@ func (c vmCmdStart) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	} else {
-		vm, err := ctx.findVm(args[0])
+		vm, err := ctx.findVm(strings.Join(args, " "))
 		if err != nil {
 			return err
 		}
@@ -170,7 +170,7 @@ func (c vmCmdStop) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	} else {
-		vm, err := ctx.findVm(args[0])
+		vm, err := ctx.findVm(strings.Join(args, " "))
 		if err != nil {
 			return err
 		}
@@ -208,7 +208,7 @@ func (c vmCmdReboot) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	} else {
-		vm, err := ctx.findVm(args[0])
+		vm, err := ctx.findVm(strings.Join(args, " "))
 		if err != nil {
 			return err
 		}
@@ -246,7 +246,7 @@ func (c vmCmdTransactions) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	}
-	vm, err := ctx.findVm(args[0])
+	vm, err := ctx.findVm(strings.Join(args, " "))
 	if err != nil {
 		return err
 	}
@@ -289,7 +289,7 @@ func (c vmCmdSsh) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	}
-	vm, err := ctx.findVm(args[0])
+	vm, err := ctx.findVm(strings.Join(args, " "))
 	if err != nil {
 		return err
 	}
@@ -333,7 +333,7 @@ func (c vmCmdStat) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	}
-	vm, err := ctx.findVm(args[0])
+	vm, err := ctx.findVm(strings.Join(args, " "))
 	if err != nil {
 		return err
 	}
@@ -356,7 +356,7 @@ func (c vmCmdStat) Run(args []string, ctx *cli) error {
 	}
 	defer session.Close()
 	session.Stdout = os.Stdout
-	log.Infoln("Taking 10 measurements at 1 second intervals ...")
+	log.Infoln("Taking 10 measurements at 3 second intervals ...")
 	err = session.Run("vmstat 1 10")
 	if err != nil {
 		return err
