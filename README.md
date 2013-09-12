@@ -29,12 +29,14 @@ Get started with `onapp config`, find usage via `onapp help` and `onapp help [co
 * `test`: Test the config
 * `help`: Help text for all commands and subcommands
 * `vm`: Management of virtual machines
-    - `list <id>`: List virtual machines and their current status in a table
+    - `list <query>`: List virtual machines and their current status in a table
     - `start <id>`: Start a virtual machine
     - `stop <id>`: Stop a virtual machine
     - `reboot <id>`: Reboot a virtual machine
     - `ssh <id>`: Launches `ssh` at the VM's first IP address and provides you with the root password
     - `stat <id>`: SSH's into the machine (no password prompt) and runs `vmstat 1 10`, which it relays to `stdout`
     - `tx <id> [num_to_list]`: List of recent transactions on that VM
+
+Where `<query>` is mentioned, you can search via any exported field in `onapp.VirtualMachine`, i.e `onapp vm list User=1 Booted=false`. Try `onapp help vm list` for a list of fields.
 
 Where `<id>` is mentioned, you may either provide exact #ID, exact Label or Hostname, or the CLI will attempt to gues which VM you mean via Levenshtein distance. Inexact matches will prompt confirmation.
