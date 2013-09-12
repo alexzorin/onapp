@@ -27,7 +27,6 @@ type config struct {
 	ApiUser    string
 	ApiKey     string
 	Server     string
-	Verbose    bool
 }
 
 type configCmd struct {
@@ -131,7 +130,6 @@ func loadConfig() (*config, error) {
 	}
 
 	flag.StringVar(&conf.ConfigFile, "configFile", fmt.Sprintf("%s%c.onapp", u.HomeDir, os.PathSeparator), "Path to config file")
-	flag.BoolVar(&conf.Verbose, "v", false, "Verbose logging")
 	flag.Parse()
 
 	_, err = os.Stat(conf.ConfigFile)
