@@ -81,9 +81,16 @@ func (c vmCmdList) Run(args []string, ctx *cli) error {
 	var searches []search
 	pattern := regexp.MustCompile("^(\\w+)=(\\w+)$")
 	for _, s := range args {
-		matches := pattern.FindStringSubmatch(strings.Trim(s, " "))
+		trimmed := strings.Trim(s, " ")
+		matches := pattern.FindStringSubmatch(trimmed)
 		if len(matches) != 3 {
-			log.Warnf("Search query '%s' isn't valid\n", s)
+			_, err := strconv.Atoi(trimmed)
+			if err == nil {
+				searches = append(searches, search{"Id", trimmed})
+				break
+			} else {
+				log.Warnf("Search query '%s' isn't valid\n", s)
+			}
 		} else {
 			searches = append(searches, search{matches[1], matches[2]})
 		}
