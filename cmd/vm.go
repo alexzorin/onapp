@@ -91,12 +91,12 @@ func (c vmCmdList) Run(args []string, ctx *cli) error {
 	for _, s := range searches {
 		asList = ctx.Search(s, asList)
 	}
-	log.Infof("%25.25s   #%-3s   %-5s   %-9s   %-10s %6s  %11s   %15s   %-30.25s\n",
-		"Label", "ID", "HV", "User", "Status", "CPUs", "RAM", "First IP", "Template")
+	log.Infof("%35.35s   #%-3s   %-5s   %-9s   %-15s   %-8s   %-11s   %-8s\n",
+		"Label", "ID", "HV", "User", "First IP", "Status", "CPUs", "RAM")
 	for item := asList.Front(); item != nil; item = item.Next() {
 		vm := (item.Value).(onapp.VirtualMachine)
-		log.Infof("%25.25s   #%-3d   HV-%-2d   User %-4d   %-18s %2d CPUs  %6dM RAM   %15s   %-30.25s\n",
-			vm.Label, vm.Id, vm.HV, vm.User, vm.BootedStringColored(), vm.Cpus, vm.Memory, vm.GetIpAddress().Address, vm.Template)
+		log.Infof("%35.35s   #%-3d   HV-%-2d   User %-4d   %-15s   %-18s %5d  %10dM\n",
+			vm.Label, vm.Id, vm.HV, vm.User, vm.GetIpAddress().Address, vm.BootedStringColored(), vm.Cpus, vm.Memory)
 	}
 	return nil
 }
