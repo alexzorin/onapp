@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/alexzorin/onapp"
 	"github.com/alexzorin/onapp/log"
+	"math"
 	"os"
 	"os/exec"
 	"regexp"
@@ -131,20 +132,20 @@ func (c vmCmdStart) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	} else {
-		id, err := strconv.Atoi(strings.Trim(args[0], " "))
+		vm, err := ctx.findVm(args[0])
 		if err != nil {
 			return err
 		}
-		busy := ctx.checkVmBusy(id)
+		busy := ctx.checkVmBusy(vm.Id)
 		if busy != nil {
 			return busy
 		}
-		err = ctx.apiClient.VirtualMachineStartup(id)
+		err = ctx.apiClient.VirtualMachineStartup(vm.Id)
 		if err != nil {
 			return err
 		}
 		log.Successf("Job successfully queued, waiting for boot process to start ... ")
-		tx, err := ctx.awaitTransaction(id, "startup_virtual_machine")
+		tx, err := ctx.awaitVmTransaction(vm.Id, "startup_virtual_machine")
 		if err != nil {
 			return err
 		}
@@ -169,20 +170,20 @@ func (c vmCmdStop) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	} else {
-		id, err := strconv.Atoi(strings.Trim(args[0], " "))
+		vm, err := ctx.findVm(args[0])
 		if err != nil {
 			return err
 		}
-		busy := ctx.checkVmBusy(id)
+		busy := ctx.checkVmBusy(vm.Id)
 		if busy != nil {
 			return busy
 		}
-		err = ctx.apiClient.VirtualMachineShutdown(id)
+		err = ctx.apiClient.VirtualMachineShutdown(vm.Id)
 		if err != nil {
 			return err
 		}
 		log.Successf("Job successfully queued, waiting for shutdown process to start ... ")
-		tx, err := ctx.awaitTransaction(id, "stop_virtual_machine")
+		tx, err := ctx.awaitVmTransaction(vm.Id, "stop_virtual_machine")
 		if err != nil {
 			return err
 		}
@@ -207,20 +208,20 @@ func (c vmCmdReboot) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	} else {
-		id, err := strconv.Atoi(strings.Trim(args[0], " "))
+		vm, err := ctx.findVm(args[0])
 		if err != nil {
 			return err
 		}
-		busy := ctx.checkVmBusy(id)
+		busy := ctx.checkVmBusy(vm.Id)
 		if busy != nil {
 			return busy
 		}
-		err = ctx.apiClient.VirtualMachineReboot(id)
+		err = ctx.apiClient.VirtualMachineReboot(vm.Id)
 		if err != nil {
 			return err
 		}
 		log.Successf("Job successfully queued, waiting for reboot process to start ... ")
-		tx, err := ctx.awaitTransaction(id, "reboot_virtual_machine")
+		tx, err := ctx.awaitVmTransaction(vm.Id, "reboot_virtual_machine")
 		if err != nil {
 			return err
 		}
@@ -245,7 +246,7 @@ func (c vmCmdTransactions) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	}
-	id, err := strconv.Atoi(strings.Trim(args[0], " "))
+	vm, err := ctx.findVm(args[0])
 	if err != nil {
 		return err
 	}
@@ -256,7 +257,7 @@ func (c vmCmdTransactions) Run(args []string, ctx *cli) error {
 			return err
 		}
 	}
-	txns, err := ctx.apiClient.VirtualMachineGetTransactions(id)
+	txns, err := ctx.apiClient.VirtualMachineGetTransactions(vm.Id)
 	if err != nil {
 		return err
 	}
@@ -288,11 +289,7 @@ func (c vmCmdSsh) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	}
-	id, err := strconv.Atoi(strings.Trim(args[0], " "))
-	if err != nil {
-		return err
-	}
-	vm, err := ctx.apiClient.GetVirtualMachine(id)
+	vm, err := ctx.findVm(args[0])
 	if err != nil {
 		return err
 	}
@@ -336,11 +333,7 @@ func (c vmCmdStat) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	}
-	id, err := strconv.Atoi(strings.Trim(args[0], " "))
-	if err != nil {
-		return err
-	}
-	vm, err := ctx.apiClient.GetVirtualMachine(id)
+	vm, err := ctx.findVm(args[0])
 	if err != nil {
 		return err
 	}
@@ -381,7 +374,85 @@ func (c vmCmdStat) Help(args []string) {
 
 // Shared funcs
 
-func (ctx *cli) awaitTransaction(vmId int, transType string) (onapp.Transaction, error) {
+// lev distance, credit athiwatc@github, https://groups.google.com/forum/#!topic/golang-nuts/i1HMYf_DuvA
+func compare(a, b string) int {
+	var cost int
+	d := make([][]int, len(a)+1)
+	for i := 0; i < len(d); i++ {
+		d[i] = make([]int, len(b)+1)
+	}
+	var min1, min2, min3 int
+	for i := 0; i < len(d); i++ {
+		d[i][0] = i
+	}
+	for i := 0; i < len(d[0]); i++ {
+		d[0][i] = i
+	}
+	for i := 1; i < len(d); i++ {
+		for j := 1; j < len(d[0]); j++ {
+			if a[i-1] == b[j-1] {
+				cost = 0
+			} else {
+				cost = 1
+			}
+			min1 = d[i-1][j] + 1
+			min2 = d[i][j-1] + 1
+			min3 = d[i-1][j-1] + cost
+			d[i][j] = int(math.Min(math.Min(float64(min1), float64(min2)), float64(min3)))
+		}
+	}
+	return d[len(a)][len(b)]
+}
+
+func (ctx *cli) findVm(query string) (onapp.VirtualMachine, error) {
+	query = strings.Trim(strings.ToLower(query), " ")
+	// Easiest option is when user passes id directly
+	asInt, err := strconv.Atoi(query)
+	if err == nil {
+		return ctx.apiClient.GetVirtualMachine(asInt)
+	}
+	vms, err := ctx.apiClient.GetVirtualMachines()
+	if err != nil {
+		return onapp.VirtualMachine{}, err
+	}
+	var candidate onapp.VirtualMachine
+	candidateDist := 1000
+	for _, v := range vms {
+		// Don't bother testing closeness if we have an exact match
+		if strings.ToLower(v.Label) == query {
+			return v, nil
+		}
+		if strings.ToLower(v.Hostname) == query {
+			return v, nil
+		}
+		dist := compare(v.Label, query)
+		if dist < candidateDist {
+			candidate = v
+			candidateDist = dist
+		}
+		dist = compare(v.Hostname, query)
+		if dist < candidateDist {
+			candidate = v
+			candidateDist = dist
+		}
+	}
+	if candidate.Id == 0 {
+		return candidate, errors.New("Couldn't find a VM matching that")
+	} else {
+		log.Infof("Inexact match found for '%s': (#%d, %s) - do you want to continue? [y/n]: ", query, candidate.Id, candidate.Label)
+		reader := bufio.NewReader(os.Stdin)
+		resp, err := reader.ReadString('\n')
+		if err != nil {
+			return onapp.VirtualMachine{}, err
+		}
+		if strings.ToLower(resp)[0] != 'y' {
+			return onapp.VirtualMachine{}, errors.New("User cancelled action")
+		}
+		return candidate, nil
+	}
+}
+
+func (ctx *cli) awaitVmTransaction(vmId int, transType string) (onapp.Transaction, error) {
 	var timeout int
 	start := time.Now().Add(-5 * time.Second)
 	for {
