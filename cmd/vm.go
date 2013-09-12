@@ -246,13 +246,14 @@ func (c vmCmdTransactions) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	}
-	vm, err := ctx.findVm(strings.Join(args, " "))
+	// woweeee
+	vm, err := ctx.findVm(strings.Join(args[0:int(math.Max(float64(len(args)-1), 1))], " "))
 	if err != nil {
 		return err
 	}
 	nList := 10
-	if len(args) == 2 {
-		nList, err = strconv.Atoi(strings.Trim(args[1], " "))
+	if len(args) > 1 {
+		nList, err = strconv.Atoi(strings.Trim(args[len(args)-1], " "))
 		if err != nil {
 			return err
 		}
@@ -261,7 +262,7 @@ func (c vmCmdTransactions) Run(args []string, ctx *cli) error {
 	if err != nil {
 		return err
 	}
-	for i := 0; i <= nList && i < len(txns); i++ {
+	for i := 0; i < nList && i < len(txns); i++ {
 		tx := txns[i]
 		t, err := tx.CreatedAtTime()
 		if err != nil {
