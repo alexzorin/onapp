@@ -87,8 +87,8 @@ func (c vmCmdList) Run(args []string, ctx *cli) error {
 	}
 	for item := asList.Front(); item != nil; item = item.Next() {
 		vm := (item.Value).(onapp.VirtualMachine)
-		log.Infof("%25.25s   #%-3d   HV-%-2d   User %-4d   %-18s %2d CPUs  %6dM RAM   %-30.25s\n",
-			vm.Label, vm.Id, vm.HV, vm.User, vm.BootedStringColored(), vm.Cpus, vm.Memory, vm.Template)
+		log.Infof("%25.25s   #%-3d   HV-%-2d   User %-4d   %-18s %2d CPUs  %6dM RAM   %15s   %-30.25s\n",
+			vm.Label, vm.Id, vm.HV, vm.User, vm.BootedStringColored(), vm.Cpus, vm.Memory, vm.GetIpAddress().Address, vm.Template)
 	}
 	return nil
 }

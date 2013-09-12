@@ -14,18 +14,29 @@ type VirtualMachines []VirtualMachine
 
 // The OnApp Virtual Machine as according to /virtual_machines.json
 type VirtualMachine struct {
-	client    *Client
-	Id        int    `json:"id"`
-	Label     string `json:"label"`
-	Booted    bool   `json:"booted"`
-	Hostname  string `json:"hostname"`
-	HV        int    `json:"hypervisor_id"`
-	Cpus      int    `json:"cpus"`
-	CpuShares int    `json:"cpu_shares"`
-	Memory    int    `json:"memory"`
-	Template  string `json:"template_label"`
-	User      int    `json:"user_id"`
-	Locked    bool   `json:"locked"`
+	client         *Client
+	Id             int                    `json:"id"`
+	Label          string                 `json:"label"`
+	Booted         bool                   `json:"booted"`
+	Hostname       string                 `json:"hostname"`
+	HV             int                    `json:"hypervisor_id"`
+	Cpus           int                    `json:"cpus"`
+	CpuShares      int                    `json:"cpu_shares"`
+	Memory         int                    `json:"memory"`
+	Template       string                 `json:"template_label"`
+	User           int                    `json:"user_id"`
+	Locked         bool                   `json:"locked"`
+	RootPassword   string                 `json:"initial_root_password"`
+	IpAddressesRaw []map[string]IpAddress `json:"ip_addresses"`
+}
+
+// IP address of a virtual machine as represented by /virtual_machines/:id.json
+type IpAddress struct {
+	Address        string `json:"address"`
+	Gateway        string `json:"gateway"`
+	Broadcast      string `json:"broadcast"`
+	NetworkAddress string `json:"network_address"`
+	Netmask        string `json:"netmask"`
 }
 
 // Fetches a list of Virtual Machines from the dashboard server
@@ -105,6 +116,27 @@ func (vm *VirtualMachine) GetTransactions() (Transactions, error) {
 
 func (vm *VirtualMachine) GetRunningTransaction() (Transaction, error) {
 	return vm.client.VirtualMachineGetRunningTransaction(vm.Id)
+}
+
+func (vm *VirtualMachine) GetIpAddresses() ([]IpAddress, error) {
+	var addrs []IpAddress
+	for _, v := range vm.IpAddressesRaw {
+		addrs = append(addrs, v["ip_address"])
+	}
+	return addrs, nil
+}
+
+func (vm *VirtualMachine) GetIpAddress() IpAddress {
+	ips, err := vm.GetIpAddresses()
+	if err != nil {
+		return IpAddress{}
+	} else {
+		if len(ips) > 0 {
+			return ips[0]
+		} else {
+			return IpAddress{}
+		}
+	}
 }
 
 func (vm *VirtualMachine) BootedString() string {
