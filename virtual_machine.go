@@ -102,14 +102,21 @@ func (c *Client) VirtualMachineGetTransactions(vmId int) (Transactions, error) {
 	return c.getTransactions(vmId)
 }
 
-func (c *Client) VirtualMachineGetRunningTransaction(vmId int) (Transaction, error) {
+func (c *Client) VirtualMachineGetLatestTransaction(vmId int, statuses ...string) (Transaction, error) {
 	txns, err := c.VirtualMachineGetTransactions(vmId)
 	if err != nil {
 		return Transaction{}, err
 	}
+	if len(statuses) == 0 && len(txns) > 0 {
+		return txns[0], nil
+	}
 	for _, t := range txns {
-		if t.Status == "running" {
-			return t, nil
+		if len(statuses) > 0 {
+			for _, s := range statuses {
+				if t.Status == s {
+					return t, nil
+				}
+			}
 		}
 	}
 	return Transaction{}, nil
@@ -132,7 +139,7 @@ func (vm *VirtualMachine) GetTransactions() (Transactions, error) {
 }
 
 func (vm *VirtualMachine) GetRunningTransaction() (Transaction, error) {
-	return vm.client.VirtualMachineGetRunningTransaction(vm.Id)
+	return vm.client.VirtualMachineGetLatestTransaction(vm.Id, "running")
 }
 
 func (vm *VirtualMachine) GetIpAddresses() ([]IpAddress, error) {

@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 )
 
 const (
@@ -127,7 +128,17 @@ func (c vmCmdStart) Run(args []string, ctx *cli) error {
 		if busy != nil {
 			return busy
 		}
-		return ctx.apiClient.VirtualMachineStartup(id)
+		err = ctx.apiClient.VirtualMachineStartup(id)
+		if err != nil {
+			return err
+		}
+		log.Successf("Job successfully queued, waiting for boot process to start ... ")
+		tx, err := ctx.awaitTransaction(id, "startup_virtual_machine")
+		if err != nil {
+			return err
+		}
+		log.Successf("Boot process started: #%d!\n", tx.Id)
+		return nil
 	}
 }
 
@@ -155,7 +166,17 @@ func (c vmCmdStop) Run(args []string, ctx *cli) error {
 		if busy != nil {
 			return busy
 		}
-		return ctx.apiClient.VirtualMachineShutdown(id)
+		err = ctx.apiClient.VirtualMachineShutdown(id)
+		if err != nil {
+			return err
+		}
+		log.Successf("Job successfully queued, waiting for shutdown process to start ... ")
+		tx, err := ctx.awaitTransaction(id, "stop_virtual_machine")
+		if err != nil {
+			return err
+		}
+		log.Successf("Shutdown process started: #%d!\n", tx.Id)
+		return nil
 	}
 }
 
@@ -183,7 +204,17 @@ func (c vmCmdReboot) Run(args []string, ctx *cli) error {
 		if busy != nil {
 			return busy
 		}
-		return ctx.apiClient.VirtualMachineReboot(id)
+		err = ctx.apiClient.VirtualMachineReboot(id)
+		if err != nil {
+			return err
+		}
+		log.Successf("Job successfully queued, waiting for reboot process to start ... ")
+		tx, err := ctx.awaitTransaction(id, "reboot_virtual_machine")
+		if err != nil {
+			return err
+		}
+		log.Successf("Reboot process started: #%d!\n", tx.Id)
+		return nil
 	}
 }
 
@@ -282,8 +313,41 @@ func (c vmCmdSsh) Help(args []string) {
 
 // Shared funcs
 
+func (ctx *cli) awaitTransaction(vmId int, transType string) (onapp.Transaction, error) {
+	var timeout int
+	start := time.Now().Add(-5 * time.Second)
+	for {
+		if timeout > 30 {
+			return onapp.Transaction{}, errors.New("Gave up waiting for transaction")
+		}
+		txns, err := ctx.apiClient.VirtualMachineGetTransactions(vmId)
+		if err != nil {
+			return onapp.Transaction{}, err
+		}
+		for i := 0; i < 5 && i < len(txns); i++ {
+			tx := txns[i]
+			t, err := tx.CreatedAtTime()
+			// Couldn't parse time
+			if err != nil {
+				continue
+			}
+			// Job started before our job
+			if t.Before(start) {
+				break
+			}
+			// Wrong type of job
+			if tx.Action != transType {
+				continue
+			}
+			return tx, nil
+		}
+		<-time.After(5 * time.Second)
+		timeout += 5
+	}
+}
+
 func (ctx *cli) checkVmBusy(id int) error {
-	busy, err := ctx.apiClient.VirtualMachineGetRunningTransaction(id)
+	busy, err := ctx.apiClient.VirtualMachineGetLatestTransaction(id, "running")
 	if err != nil {
 		return err
 	}
