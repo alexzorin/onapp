@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bufio"
+	"code.google.com/p/go.crypto/ssh"
 	"errors"
 	"fmt"
 	"github.com/alexzorin/onapp"
@@ -32,6 +33,8 @@ const (
 	vmCmdTransactionsHelp        = "Usage: `onapp vm transactions <id> [number_to_list]`"
 	vmCmdSshDescription          = "Uses SSH and the known root password to login to the machine"
 	vmCmdSshHelp                 = "Usage: `onapp vm ssh <id>`, will connect on <first_ip>:22 as root with the known root password"
+	vmCmdStatDescription         = "Logs into the VM via SSH and runs vmstat, printing to stdout"
+	vmCmdStatHelp                = "Usage: `onapp vm stat <id>`"
 )
 
 // Base command
@@ -44,6 +47,7 @@ var vmCmdHandlers = map[string]cmdHandler{
 	"stop":   vmCmdStop{},
 	"reboot": vmCmdReboot{},
 	"ssh":    vmCmdSsh{},
+	"stat":   vmCmdStat{},
 	"tx":     vmCmdTransactions{},
 }
 
@@ -316,6 +320,63 @@ func (c vmCmdSsh) Description() string {
 
 func (c vmCmdSsh) Help(args []string) {
 	log.Infoln(vmCmdSshHelp)
+}
+
+// Stat command
+type vmCmdStat struct{}
+
+type vmPassword string
+
+func (s vmPassword) Password(user string) (string, error) {
+	return string(s), nil
+}
+
+func (c vmCmdStat) Run(args []string, ctx *cli) error {
+	if len(args) == 0 {
+		c.Help(args)
+		return nil
+	}
+	id, err := strconv.Atoi(strings.Trim(args[0], " "))
+	if err != nil {
+		return err
+	}
+	vm, err := ctx.apiClient.GetVirtualMachine(id)
+	if err != nil {
+		return err
+	}
+	if !vm.Booted {
+		return errors.New("Virtual machine isn't booted")
+	}
+	config := &ssh.ClientConfig{
+		User: "root",
+		Auth: []ssh.ClientAuth{
+			ssh.ClientAuthPassword(vmPassword(vm.RootPassword)),
+		},
+	}
+	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", vm.GetIpAddress().Address, 22), config)
+	if err != nil {
+		return err
+	}
+	session, err := client.NewSession()
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+	session.Stdout = os.Stdout
+	log.Infoln("Taking 10 measurements at 1 second intervals ...")
+	err = session.Run("vmstat 1 10")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c vmCmdStat) Description() string {
+	return vmCmdStatDescription
+}
+
+func (c vmCmdStat) Help(args []string) {
+	log.Infoln(vmCmdStatHelp)
 }
 
 // Shared funcs
