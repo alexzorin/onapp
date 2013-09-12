@@ -356,8 +356,7 @@ func (c vmCmdStat) Run(args []string, ctx *cli) error {
 	}
 	defer session.Close()
 	session.Stdout = os.Stdout
-	log.Infoln("Taking 10 measurements at 1 second intervals ...")
-	err = session.Run("vmstat 1 10")
+	err = session.Run("echo && uptime && echo && free -m && echo && vmstat 1 10")
 	if err != nil {
 		return err
 	}
