@@ -3,7 +3,7 @@ package onapp
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/alexzorin/onapp/cmd/log"
+	"github.com/alexzorin/onapp/log"
 	"time"
 )
 

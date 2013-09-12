@@ -7,7 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/alexzorin/onapp"
-	"github.com/alexzorin/onapp/cmd/log"
+	"github.com/alexzorin/onapp/log"
 	"io/ioutil"
 	"os"
 	"os/user"

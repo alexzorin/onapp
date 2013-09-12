@@ -4,7 +4,7 @@ import (
 	"container/list"
 	"encoding/json"
 	"errors"
-	"github.com/alexzorin/onapp/cmd/log"
+	"github.com/alexzorin/onapp/log"
 	"strconv"
 )
 

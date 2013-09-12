@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/alexzorin/onapp"
-	"github.com/alexzorin/onapp/cmd/log"
+	"github.com/alexzorin/onapp/log"
 	"os"
 	"os/exec"
 	"regexp"

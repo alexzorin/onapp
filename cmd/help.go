@@ -3,7 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"github.com/alexzorin/onapp/cmd/log"
+	"github.com/alexzorin/onapp/log"
 )
 
 const (

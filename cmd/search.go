@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"container/list"
-	"github.com/alexzorin/onapp/cmd/log"
+	"github.com/alexzorin/onapp/log"
 	"reflect"
 	"strconv"
 	"strings"
