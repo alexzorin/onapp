@@ -254,6 +254,9 @@ func (c vmCmdSsh) Run(args []string, ctx *cli) error {
 	if err != nil {
 		return err
 	}
+	if !vm.Booted {
+		return errors.New("Virtual machine isn't booted")
+	}
 	sshCmd, err := exec.LookPath("ssh")
 	if err != nil {
 		return err
