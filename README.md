@@ -39,4 +39,4 @@ Get started with `onapp config`, find usage via `onapp help` and `onapp help [co
 
 Where `<query>` is mentioned, you can search via any exported field in `onapp.VirtualMachine`, i.e `onapp vm list User=1 Booted=false`. Try `onapp help vm list` for a list of fields.
 
-Where `<id>` is mentioned, you may either provide exact #ID, exact Label or Hostname, or the CLI will attempt to gues which VM you mean via Levenshtein distance. Inexact matches will prompt confirmation.
+Where `<id>` is mentioned, you may either provide exact #ID, exact Label or Hostname, or the CLI will attempt to guess which VM you mean via text similarity. Inexact matches will prompt confirmation.
