@@ -132,7 +132,7 @@ func (c vmCmdStart) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	} else {
-		vm, err := ctx.findVm(strings.Join(args, " "))
+		vm, err := ctx.findVm(args[0])
 		if err != nil {
 			return err
 		}
@@ -170,7 +170,7 @@ func (c vmCmdStop) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	} else {
-		vm, err := ctx.findVm(strings.Join(args, " "))
+		vm, err := ctx.findVm(args[0])
 		if err != nil {
 			return err
 		}
@@ -208,7 +208,7 @@ func (c vmCmdReboot) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	} else {
-		vm, err := ctx.findVm(strings.Join(args, " "))
+		vm, err := ctx.findVm(args[0])
 		if err != nil {
 			return err
 		}
@@ -246,8 +246,7 @@ func (c vmCmdTransactions) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	}
-	// woweeee
-	vm, err := ctx.findVm(strings.Join(args[0:int(math.Max(float64(len(args)-1), 1))], " "))
+	vm, err := ctx.findVm(args[0])
 	if err != nil {
 		return err
 	}
@@ -290,7 +289,7 @@ func (c vmCmdSsh) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	}
-	vm, err := ctx.findVm(strings.Join(args, " "))
+	vm, err := ctx.findVm(args[0])
 	if err != nil {
 		return err
 	}
@@ -334,7 +333,7 @@ func (c vmCmdStat) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	}
-	vm, err := ctx.findVm(strings.Join(args, " "))
+	vm, err := ctx.findVm(args[0])
 	if err != nil {
 		return err
 	}
