@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"github.com/alexzorin/onapp"
 	"github.com/alexzorin/onapp/log"
+	"io/ioutil"
 	"math"
 	"os"
 	"os/exec"
+	"os/user"
 	"regexp"
 	"sort"
 	"strconv"
@@ -36,6 +38,8 @@ const (
 	vmCmdSshHelp                 = "Usage: `onapp vm ssh <id>`, will connect on <first_ip>:22 as root with the known root password"
 	vmCmdStatDescription         = "Logs into the VM via SSH and runs vmstat, printing to stdout"
 	vmCmdStatHelp                = "Usage: `onapp vm stat <id>`"
+	vmCmdCopyIdDescription       = "Copies your ~/.ssh/id_rsa.pub to the VM's authorized_keys"
+	vmCmdCopyIdHelp              = "Usage: `onapp vm copy-id <id>`"
 )
 
 // Base command
@@ -43,13 +47,14 @@ const (
 type vmCmd struct{}
 
 var vmCmdHandlers = map[string]cmdHandler{
-	"list":   vmCmdList{},
-	"start":  vmCmdStart{},
-	"stop":   vmCmdStop{},
-	"reboot": vmCmdReboot{},
-	"ssh":    vmCmdSsh{},
-	"stat":   vmCmdStat{},
-	"tx":     vmCmdTransactions{},
+	"list":    vmCmdList{},
+	"start":   vmCmdStart{},
+	"stop":    vmCmdStop{},
+	"reboot":  vmCmdReboot{},
+	"ssh":     vmCmdSsh{},
+	"stat":    vmCmdStat{},
+	"tx":      vmCmdTransactions{},
+	"copy-id": vmCmdCopyId{},
 }
 
 func (c vmCmd) Run(args []string, ctx *cli) error {
@@ -369,6 +374,68 @@ func (c vmCmdStat) Description() string {
 
 func (c vmCmdStat) Help(args []string) {
 	log.Infoln(vmCmdStatHelp)
+}
+
+// copy-id command
+type vmCmdCopyId struct{}
+
+func (c vmCmdCopyId) Run(args []string, ctx *cli) error {
+	if len(args) == 0 {
+		c.Help(args)
+		return nil
+	}
+	u, err := user.Current()
+	if err != nil {
+		return err
+	}
+	path := fmt.Sprintf("%s%c%s%c%s", u.HomeDir, os.PathSeparator, ".ssh", os.PathSeparator, "id_rsa.pub")
+	_, err = os.Stat(path)
+	if err != nil {
+		return err
+	}
+
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	vm, err := ctx.findVm(args[0])
+	if err != nil {
+		return err
+	}
+	if !vm.Booted {
+		return errors.New("Virtual machine isn't booted")
+	}
+	config := &ssh.ClientConfig{
+		User: "root",
+		Auth: []ssh.ClientAuth{
+			ssh.ClientAuthPassword(vmPassword(vm.RootPassword)),
+		},
+	}
+	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", vm.GetIpAddress().Address, 22), config)
+	if err != nil {
+		return err
+	}
+	session, err := client.NewSession()
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+	session.Stdout = os.Stdout
+	err = session.Run(fmt.Sprintf("echo '%s' >> /root/.ssh/authorized_keys", string(data)))
+	if err != nil {
+		return err
+	}
+	log.Successln("Successfully copied key to server")
+	return nil
+}
+
+func (c vmCmdCopyId) Description() string {
+	return vmCmdCopyIdDescription
+}
+
+func (c vmCmdCopyId) Help(args []string) {
+	log.Infoln(vmCmdCopyIdHelp)
 }
 
 // Shared funcs
