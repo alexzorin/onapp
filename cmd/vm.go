@@ -36,6 +36,8 @@ const (
 	vmCmdTransactionsHelp        = "Usage: `onapp vm transactions <id> [number_to_list]`"
 	vmCmdSshDescription          = "Uses SSH and the known root password to login to the machine"
 	vmCmdSshHelp                 = "Usage: `onapp vm ssh <id>`, will connect on <first_ip>:22 as root with the known root password"
+	vmCmdVncDescription          = "Opens vncviewer and provides the password for the virtual machine"
+	vmCmdVncHelp                 = "Usage: `onapp vm vnc <id>`"
 	vmCmdStatDescription         = "Logs into the VM via SSH and runs vmstat, printing to stdout"
 	vmCmdStatHelp                = "Usage: `onapp vm stat <id>`"
 	vmCmdCopyIdDescription       = "Copies your ~/.ssh/id_rsa.pub to the VM's authorized_keys"
@@ -55,6 +57,7 @@ var vmCmdHandlers = map[string]cmdHandler{
 	"stat":    vmCmdStat{},
 	"tx":      vmCmdTransactions{},
 	"copy-id": vmCmdCopyId{},
+	"vnc":     vmCmdVnc{},
 }
 
 func (c vmCmd) Run(args []string, ctx *cli) error {
@@ -322,6 +325,43 @@ func (c vmCmdSsh) Description() string {
 
 func (c vmCmdSsh) Help(args []string) {
 	log.Infoln(vmCmdSshHelp)
+}
+
+// VNC command
+type vmCmdVnc struct{}
+
+func (c vmCmdVnc) Run(args []string, ctx *cli) error {
+	if len(args) == 0 {
+		c.Help(args)
+		return nil
+	}
+	vm, err := ctx.findVm(args[0])
+	if err != nil {
+		return err
+	}
+	if !vm.Booted {
+		return errors.New("Virtual machine isn't booted")
+	}
+	cmd, err := exec.LookPath("vncviewer")
+	if err != nil {
+		return err
+	}
+	log.Infof("Enter %s as the password\n", vm.VncPassword)
+
+	cmdPath, cmdArgs := buildLaunchGuiCmd(cmd, "-FullColour", fmt.Sprintf("%s:30000", ctx.config.Server))
+	e := exec.Command(cmdPath, cmdArgs...)
+	if err = e.Start(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c vmCmdVnc) Description() string {
+	return vmCmdVncDescription
+}
+
+func (c vmCmdVnc) Help(args []string) {
+	log.Infoln(vmCmdVncHelp)
 }
 
 // Stat command

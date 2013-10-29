@@ -28,6 +28,7 @@ type VirtualMachine struct {
 	Locked         bool                   `json:"locked"`
 	RootPassword   string                 `json:"initial_root_password"`
 	IpAddressesRaw []map[string]IpAddress `json:"ip_addresses"`
+	VncPassword    string                 `json:"remote_access_password"`
 }
 
 // IP address of a virtual machine as represented by /virtual_machines/:id.json
