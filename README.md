@@ -34,15 +34,11 @@ Get started with `onapp config`, find usage via `onapp help` and `onapp help [co
     - `stop <id>`: Stop a virtual machine
     - `reboot <id>`: Reboot a virtual machine
     - `ssh <id>`: Launches `ssh` at the VM's first IP address and provides you with the root password
-    - `vnc <id>`: Launches `vncviewer` (at this time only RealVNC Viewer is supported) at the OnApp VNC server and provides the password to use for that virtual machine
+    - `vnc <id>`: Etablishes a VNC session on the cloud server and launches `vncviewer` (needs to be in path, at this time only RealVNC Viewer is supported)
     - `copy-id <id>`: Copies the user's `~/.ssh/id_rsa.pub` to the server's `authorized_keys`
     - `stat <id>`: SSH's into the machine (no password prompt) and runs `vmstat 1 10`, which it relays to `stdout`
-    - `tx <id> [num_to_list]`: List of recent transactions on that VM'
+    - `tx <id> [num_to_list]`: List of recent transactions on that VM
 
 Where `<query>` is mentioned, you can search via any exported field in `onapp.VirtualMachine`, i.e `onapp vm list User=1 Booted=false`. Try `onapp help vm list` for a list of fields.
 
 Where `<id>` is mentioned, you may either provide exact #ID, exact Label or Hostname, or the CLI will attempt to guess which VM you mean via text similarity. Inexact matches will prompt confirmation.
-
-### Caveats
-
-At the moment, the `vnc` command may be broken in some versions of OnApp, due to how VNC sessions are handled on their back end. This affects all external VNC clients.

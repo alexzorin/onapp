@@ -40,6 +40,25 @@ type IpAddress struct {
 	Netmask        string `json:"netmask"`
 }
 
+// Remote Access Session
+type RemoteAccessSession struct {
+	Port int `json:"port"`
+}
+
+func (c *Client) GetRemoteAccessSession(id int) (RemoteAccessSession, error) {
+	data, err, _ := c.getReq("/virtual_machines/", strconv.Itoa(id), "/console.json")
+	if err != nil {
+		return RemoteAccessSession{}, err
+	}
+	var out map[string]RemoteAccessSession
+	err = json.Unmarshal(data, &out)
+	if err != nil {
+		return RemoteAccessSession{}, err
+	} else {
+		return out["remote_access_session"], err
+	}
+}
+
 // Fetches a list of Virtual Machines from the dashboard server
 func (c *Client) GetVirtualMachines() (VirtualMachines, error) {
 	data, err, _ := c.getReq("virtual_machines.json")
@@ -182,6 +201,19 @@ func (vm *VirtualMachine) BootedStringColored() string {
 	} else {
 		return log.ColorString("Offline", log.RED)
 	}
+}
+
+func (vm *VirtualMachine) GetRemoteAccessSession() (*RemoteAccessSession, error) {
+	ras, err := vm.client.GetRemoteAccessSession(vm.Id)
+	if err != nil {
+		return &RemoteAccessSession{}, err
+	}
+	newVm, err := vm.client.GetVirtualMachine(vm.Id)
+	if err != nil {
+		return &RemoteAccessSession{}, err
+	}
+	*vm = newVm
+	return &ras, nil
 }
 
 func (vms VirtualMachines) AsList() list.List {

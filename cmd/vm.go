@@ -342,13 +342,17 @@ func (c vmCmdVnc) Run(args []string, ctx *cli) error {
 	if !vm.Booted {
 		return errors.New("Virtual machine isn't booted")
 	}
+	ras, err := vm.GetRemoteAccessSession()
+	if err != nil {
+		return err
+	}
 	cmd, err := exec.LookPath("vncviewer")
 	if err != nil {
 		return err
 	}
 	log.Infof("Enter %s as the password\n", vm.VncPassword)
 
-	cmdPath, cmdArgs := buildLaunchGuiCmd(cmd, "-FullColour", fmt.Sprintf("%s:30000", ctx.config.Server))
+	cmdPath, cmdArgs := buildLaunchGuiCmd(cmd, "-FullColour", fmt.Sprintf("%s:%d", ctx.config.Server, ras.Port))
 	e := exec.Command(cmdPath, cmdArgs...)
 	if err = e.Start(); err != nil {
 		return err
