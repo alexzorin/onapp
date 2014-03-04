@@ -88,5 +88,5 @@ func println(format string, color string, pad bool, args interface{}) {
 	} else {
 		padded = false
 	}
-	fmt.Printf(buf.String())
+	fmt.Print(buf.String())
 }
