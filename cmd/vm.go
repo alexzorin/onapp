@@ -42,6 +42,8 @@ const (
 	vmCmdStatHelp                = "Usage: `onapp vm stat <id>`"
 	vmCmdCopyIdDescription       = "Copies your ~/.ssh/id_rsa.pub to the VM's authorized_keys"
 	vmCmdCopyIdHelp              = "Usage: `onapp vm copy-id <id>`"
+	vmCmdClearCacheDescription   = "Clears the cache used by this CLI"
+	vmCmdClearCacheHelp          = "Usage: `onapp vm clear-cache`"
 )
 
 // Base command
@@ -49,15 +51,16 @@ const (
 type vmCmd struct{}
 
 var vmCmdHandlers = map[string]cmdHandler{
-	"list":    vmCmdList{},
-	"start":   vmCmdStart{},
-	"stop":    vmCmdStop{},
-	"reboot":  vmCmdReboot{},
-	"ssh":     vmCmdSsh{},
-	"stat":    vmCmdStat{},
-	"tx":      vmCmdTransactions{},
-	"copy-id": vmCmdCopyId{},
-	"vnc":     vmCmdVnc{},
+	"list":        vmCmdList{},
+	"start":       vmCmdStart{},
+	"stop":        vmCmdStop{},
+	"reboot":      vmCmdReboot{},
+	"ssh":         vmCmdSsh{},
+	"stat":        vmCmdStat{},
+	"tx":          vmCmdTransactions{},
+	"copy-id":     vmCmdCopyId{},
+	"vnc":         vmCmdVnc{},
+	"clear-cache": vmCmdClearCache{},
 }
 
 func (c vmCmd) Run(args []string, ctx *cli) error {
@@ -480,6 +483,24 @@ func (c vmCmdCopyId) Description() string {
 
 func (c vmCmdCopyId) Help(args []string) {
 	log.Infoln(vmCmdCopyIdHelp)
+}
+
+// copy-id command
+type vmCmdClearCache struct{}
+
+func (c vmCmdClearCache) Run(args []string, ctx *cli) error {
+	if ctx.cache != nil {
+		ctx.cache.Clear()
+	}
+	return nil
+}
+
+func (c vmCmdClearCache) Description() string {
+	return vmCmdClearCacheDescription
+}
+
+func (c vmCmdClearCache) Help(args []string) {
+	log.Infoln(vmCmdClearCacheHelp)
 }
 
 // Shared funcs
