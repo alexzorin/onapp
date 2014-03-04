@@ -42,6 +42,8 @@ const (
 	vmCmdStatHelp                = "Usage: `onapp vm stat <id>`"
 	vmCmdCopyIdDescription       = "Copies your ~/.ssh/id_rsa.pub to the VM's authorized_keys"
 	vmCmdCopyIdHelp              = "Usage: `onapp vm copy-id <id>`"
+	vmCmdClearCacheDescription   = "Clears the cache used by this CLI"
+	vmCmdClearCacheHelp          = "Usage: `onapp vm clear-cache`"
 )
 
 // Base command
@@ -49,15 +51,16 @@ const (
 type vmCmd struct{}
 
 var vmCmdHandlers = map[string]cmdHandler{
-	"list":    vmCmdList{},
-	"start":   vmCmdStart{},
-	"stop":    vmCmdStop{},
-	"reboot":  vmCmdReboot{},
-	"ssh":     vmCmdSsh{},
-	"stat":    vmCmdStat{},
-	"tx":      vmCmdTransactions{},
-	"copy-id": vmCmdCopyId{},
-	"vnc":     vmCmdVnc{},
+	"list":        vmCmdList{},
+	"start":       vmCmdStart{},
+	"stop":        vmCmdStop{},
+	"reboot":      vmCmdReboot{},
+	"ssh":         vmCmdSsh{},
+	"stat":        vmCmdStat{},
+	"tx":          vmCmdTransactions{},
+	"copy-id":     vmCmdCopyId{},
+	"vnc":         vmCmdVnc{},
+	"clear-cache": vmCmdClearCache{},
 }
 
 func (c vmCmd) Run(args []string, ctx *cli) error {
@@ -140,7 +143,7 @@ func (c vmCmdStart) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	} else {
-		vm, err := ctx.findVm(args[0])
+		vm, err := ctx.findVm(args[0], true)
 		if err != nil {
 			return err
 		}
@@ -178,7 +181,7 @@ func (c vmCmdStop) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	} else {
-		vm, err := ctx.findVm(args[0])
+		vm, err := ctx.findVm(args[0], true)
 		if err != nil {
 			return err
 		}
@@ -216,7 +219,7 @@ func (c vmCmdReboot) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	} else {
-		vm, err := ctx.findVm(args[0])
+		vm, err := ctx.findVm(args[0], true)
 		if err != nil {
 			return err
 		}
@@ -254,7 +257,7 @@ func (c vmCmdTransactions) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	}
-	vm, err := ctx.findVm(args[0])
+	vm, err := ctx.findVm(args[0], true)
 	if err != nil {
 		return err
 	}
@@ -297,7 +300,7 @@ func (c vmCmdSsh) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	}
-	vm, err := ctx.findVm(args[0])
+	vm, err := ctx.findVm(args[0], true)
 	if err != nil {
 		return err
 	}
@@ -335,7 +338,7 @@ func (c vmCmdVnc) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	}
-	vm, err := ctx.findVm(args[0])
+	vm, err := ctx.findVm(args[0], true)
 	if err != nil {
 		return err
 	}
@@ -382,7 +385,7 @@ func (c vmCmdStat) Run(args []string, ctx *cli) error {
 		c.Help(args)
 		return nil
 	}
-	vm, err := ctx.findVm(args[0])
+	vm, err := ctx.findVm(args[0], true)
 	if err != nil {
 		return err
 	}
@@ -443,7 +446,7 @@ func (c vmCmdCopyId) Run(args []string, ctx *cli) error {
 		return err
 	}
 
-	vm, err := ctx.findVm(args[0])
+	vm, err := ctx.findVm(args[0], true)
 	if err != nil {
 		return err
 	}
@@ -482,6 +485,24 @@ func (c vmCmdCopyId) Help(args []string) {
 	log.Infoln(vmCmdCopyIdHelp)
 }
 
+// copy-id command
+type vmCmdClearCache struct{}
+
+func (c vmCmdClearCache) Run(args []string, ctx *cli) error {
+	if ctx.cache != nil {
+		ctx.cache.Clear()
+	}
+	return nil
+}
+
+func (c vmCmdClearCache) Description() string {
+	return vmCmdClearCacheDescription
+}
+
+func (c vmCmdClearCache) Help(args []string) {
+	log.Infoln(vmCmdClearCacheHelp)
+}
+
 // Shared funcs
 
 // lev distance, credit athiwatc@github, https://groups.google.com/forum/#!topic/golang-nuts/i1HMYf_DuvA
@@ -514,25 +535,48 @@ func compare(a, b string) int {
 	return d[len(a)][len(b)]
 }
 
-func (ctx *cli) findVm(query string) (onapp.VirtualMachine, error) {
+func (ctx *cli) findVm(query string, useCache bool) (onapp.VirtualMachine, error) {
 	query = strings.Trim(strings.ToLower(query), " ")
 	// Easiest option is when user passes id directly
 	asInt, err := strconv.Atoi(query)
 	if err == nil {
 		return ctx.apiClient.GetVirtualMachine(asInt)
 	}
-	vms, err := ctx.apiClient.GetVirtualMachines()
-	if err != nil {
-		return onapp.VirtualMachine{}, err
+	var vms onapp.VirtualMachines
+	var wasCached bool
+	if useCache && ctx.cache != nil {
+		vms, err = ctx.cache.GetVirtualMachines()
+		if err != nil && err != ErrCacheDoesntExist {
+			log.Warnf("Skipping cache: %s", err.Error())
+		} else {
+			wasCached = true
+		}
+	}
+	if vms == nil {
+		vms, err = ctx.apiClient.GetVirtualMachines()
+		if err != nil {
+			log.Errorln(err.Error())
+			return onapp.VirtualMachine{}, err
+		} else {
+			if err := ctx.cache.Store(vms); err != nil {
+				log.Warnf("Unable to save the cache: %v", err)
+			}
+		}
 	}
 	var candidate onapp.VirtualMachine
 	candidateDist := 1000
 	for _, v := range vms {
 		// Don't bother testing closeness if we have an exact match
 		if strings.ToLower(v.Label) == query {
+			if wasCached {
+				return ctx.findVm(fmt.Sprintf("%d", v.Id), false)
+			}
 			return v, nil
 		}
 		if strings.ToLower(v.Hostname) == query {
+			if wasCached {
+				return ctx.findVm(fmt.Sprintf("%d", v.Id), false)
+			}
 			return v, nil
 		}
 		dist := compare(v.Label, query)
@@ -547,6 +591,11 @@ func (ctx *cli) findVm(query string) (onapp.VirtualMachine, error) {
 		}
 	}
 	if candidate.Id == 0 {
+		// if we had a miss while we were cached, flush the cache
+		if wasCached {
+			log.Warnln("missed everything, retrying no cache")
+			return ctx.findVm(query, false)
+		}
 		return candidate, errors.New("Couldn't find a VM matching that")
 	} else {
 		log.Infof("Inexact match found for '%s': (#%d, %s) - do you want to continue? [y/n]: ", query, candidate.Id, candidate.Label)
@@ -557,6 +606,9 @@ func (ctx *cli) findVm(query string) (onapp.VirtualMachine, error) {
 		}
 		if strings.ToLower(resp)[0] != 'y' {
 			return onapp.VirtualMachine{}, errors.New("User cancelled action")
+		}
+		if useCache || wasCached {
+			return ctx.findVm(fmt.Sprintf("%d", candidate.Id), false)
 		}
 		return candidate, nil
 	}

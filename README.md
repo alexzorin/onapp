@@ -42,3 +42,10 @@ Get started with `onapp config`, find usage via `onapp help` and `onapp help [co
 Where `<query>` is mentioned, you can search via any exported field in `onapp.VirtualMachine`, i.e `onapp vm list User=1 Booted=false`. Try `onapp help vm list` for a list of fields.
 
 Where `<id>` is mentioned, you may either provide exact #ID, exact Label or Hostname, or the CLI will attempt to guess which VM you mean via text similarity. Inexact matches will prompt confirmation.
+
+### Cache
+Since the OnApp API can at times be slow (when listing all virtual machines, for example), the CLI will cache a copy of the list to `~/.onapp_cache`. This copy is stripped of all root and VNC passwords.
+
+If an item is found in the cache initially, the CLI will look the VM up at the API again (by ID, which is much faster) and retreive the passwords again.
+
+You can also clear it using `onapp vm clear-cache`.
