@@ -14,6 +14,7 @@ type cli struct {
 	*config
 	caller    string
 	apiClient *onapp.Client
+	cache     Cache
 }
 
 type cmdHandler interface {
@@ -63,7 +64,7 @@ func Start() {
 	if err != nil {
 		log.Errorf(err.Error())
 	}
-	cli := cli{conf, filepath.Base(os.Args[0]), cl}
+	cli := cli{conf, filepath.Base(os.Args[0]), cl, &fileBackedCache{}}
 	cli.parse(cleanArgs(os.Args[1:]))
 }
 
