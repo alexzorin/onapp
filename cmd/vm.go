@@ -2,11 +2,8 @@ package cmd
 
 import (
 	"bufio"
-	"code.google.com/p/go.crypto/ssh"
 	"errors"
 	"fmt"
-	"github.com/alexzorin/onapp"
-	"github.com/alexzorin/onapp/log"
 	"io/ioutil"
 	"math"
 	"os"
@@ -18,6 +15,10 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"code.google.com/p/go.crypto/ssh"
+	"github.com/alexzorin/onapp"
+	"github.com/alexzorin/onapp/log"
 )
 
 const (
@@ -374,12 +375,6 @@ func (c vmCmdVnc) Help(args []string) {
 // Stat command
 type vmCmdStat struct{}
 
-type vmPassword string
-
-func (s vmPassword) Password(user string) (string, error) {
-	return string(s), nil
-}
-
 func (c vmCmdStat) Run(args []string, ctx *cli) error {
 	if len(args) == 0 {
 		c.Help(args)
@@ -394,8 +389,10 @@ func (c vmCmdStat) Run(args []string, ctx *cli) error {
 	}
 	config := &ssh.ClientConfig{
 		User: "root",
-		Auth: []ssh.ClientAuth{
-			ssh.ClientAuthPassword(vmPassword(vm.RootPassword)),
+		Auth: []ssh.AuthMethod{
+			ssh.PasswordCallback(func() (string, error) {
+				return vm.RootPassword, nil
+			}),
 		},
 	}
 	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", vm.GetIpAddress().Address, 22), config)
@@ -455,8 +452,10 @@ func (c vmCmdCopyId) Run(args []string, ctx *cli) error {
 	}
 	config := &ssh.ClientConfig{
 		User: "root",
-		Auth: []ssh.ClientAuth{
-			ssh.ClientAuthPassword(vmPassword(vm.RootPassword)),
+		Auth: []ssh.AuthMethod{
+			ssh.PasswordCallback(func() (string, error) {
+				return vm.RootPassword, nil
+			}),
 		},
 	}
 	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", vm.GetIpAddress().Address, 22), config)
