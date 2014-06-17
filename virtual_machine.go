@@ -4,8 +4,10 @@ import (
 	"container/list"
 	"encoding/json"
 	"errors"
-	"github.com/alexzorin/onapp/log"
 	"strconv"
+
+	"github.com/alexzorin/onapp/log"
+	"github.com/alexzorin/rfc5735"
 )
 
 // sort.Sort'ing over this type will
@@ -170,17 +172,27 @@ func (vm *VirtualMachine) GetIpAddresses() ([]IpAddress, error) {
 	return addrs, nil
 }
 
+// This prefers non-rfc5735 addresses
+// if possible
 func (vm *VirtualMachine) GetIpAddress() IpAddress {
+	var out IpAddress
 	ips, err := vm.GetIpAddresses()
 	if err != nil {
 		return IpAddress{}
 	} else {
 		if len(ips) > 0 {
-			return ips[0]
-		} else {
-			return IpAddress{}
+			out = ips[0]
+		}
+		if len(ips) > 1 {
+			for _, i := range ips {
+				if !rfc5735.IsReservedString(i.Address) {
+					out = i
+					break
+				}
+			}
 		}
 	}
+	return out
 }
 
 func (vm *VirtualMachine) BootedString() string {
