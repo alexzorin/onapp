@@ -1,3 +1,2 @@
-*.sublime-*
-*.exe
-install.sh
+Makefile
+build/
