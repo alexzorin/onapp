@@ -55,9 +55,14 @@ func (c *Client) readResponse(resp *http.Response) ([]byte, error, int) {
 
 // Concatenates the path elements together, and then to the dashboard URL.
 func (c *Client) makeUri(toConcat ...string) string {
-	buf := bytes.NewBufferString("http://")
+	buf := bytes.NewBufferString("")
+	if strings.Index(c.Server, "http://") == -1 && strings.Index(c.Server, "https://") == -1 {
+		buf.WriteString("https://")
+	}
 	buf.WriteString(c.Server)
-	buf.WriteByte('/')
+	if c.Server[len(c.Server)-1] != '/' {
+		buf.WriteByte('/')
+	}
 	for _, v := range toConcat {
 		buf.WriteString(v)
 	}

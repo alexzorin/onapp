@@ -6,14 +6,15 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/alexzorin/onapp"
-	"github.com/alexzorin/onapp/log"
 	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
 	"reflect"
 	"strings"
+
+	"github.com/alexzorin/onapp"
+	"github.com/alexzorin/onapp/log"
 )
 
 const (
@@ -37,7 +38,7 @@ func (c configCmd) Run(args []string, ctx *cli) error {
 	log.Infoln("This is the configuration wizard. Please provide the following: \n")
 	reader := bufio.NewReader(os.Stdin)
 
-	log.Infof("Hostname of the OnApp dashboard: ")
+	log.Infof("Hostname of the OnApp dashboard (i.e example.org (default HTTPS), http://example.org, https://example.org): ")
 	host, err := reader.ReadString('\n')
 	if err != nil {
 		return err
