@@ -356,7 +356,12 @@ func (c vmCmdVnc) Run(args []string, ctx *cli) error {
 	}
 	log.Infof("Enter %s as the password\n", vm.VncPassword)
 
-	cmdPath, cmdArgs := buildLaunchGuiCmd(cmd, "-FullColour", fmt.Sprintf("%s:%d", ctx.config.Server, ras.Port))
+	hostname := strings.TrimRight(ctx.config.Server, "/")
+	if idx := strings.Index(hostname, "//"); idx > 0 {
+		hostname = hostname[idx+2:]
+	}
+
+	cmdPath, cmdArgs := buildLaunchGuiCmd(cmd, "-FullColour", fmt.Sprintf("%s:%d", hostname, ras.Port))
 	e := exec.Command(cmdPath, cmdArgs...)
 	if err = e.Start(); err != nil {
 		return err
