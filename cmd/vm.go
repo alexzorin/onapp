@@ -602,17 +602,17 @@ func (ctx *cli) findVm(query string, useCache bool) (onapp.VirtualMachine, error
 		}
 		return candidate, errors.New("Couldn't find a VM matching that")
 	} else {
-		log.Infof("Inexact match found for '%s': (#%d, %s) - do you want to continue? [y/n]: ", query, candidate.Id, candidate.Label)
+		log.Infof("Inexact match found for '%s': (#%d, %s) - do you want to continue? [y/n/s[kip cache]]: ", query, candidate.Id, candidate.Label)
 		reader := bufio.NewReader(os.Stdin)
 		resp, err := reader.ReadString('\n')
 		if err != nil {
 			return onapp.VirtualMachine{}, err
 		}
-		if strings.ToLower(resp)[0] != 'y' {
+		switch strings.ToLower(resp)[0] {
+		case 'n':
 			return onapp.VirtualMachine{}, errors.New("User cancelled action")
-		}
-		if useCache || wasCached {
-			return ctx.findVm(fmt.Sprintf("%d", candidate.Id), false)
+		case 's':
+			return ctx.findVm(query, false)
 		}
 		return candidate, nil
 	}
