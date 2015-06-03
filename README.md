@@ -38,6 +38,7 @@ Get started with `onapp config`, find usage via `onapp help` and `onapp help [co
     - `copy-id <id>`: Copies the user's `~/.ssh/id_rsa.pub` to the server's `authorized_keys`
     - `stat <id>`: SSH's into the machine (no password prompt) and runs `vmstat 1 10`, which it relays to `stdout`
     - `tx <id> [num_to_list]`: List of recent transactions on that VM
+    - `pass <id>`: Copy password to the clipboard
 
 Where `<query>` is mentioned, you can search via any exported field in `onapp.VirtualMachine`, i.e `onapp vm list User=1 Booted=false`. Try `onapp help vm list` for a list of fields.
 

@@ -19,6 +19,7 @@ import (
 	"code.google.com/p/go.crypto/ssh"
 	"github.com/alexzorin/onapp"
 	"github.com/alexzorin/onapp/log"
+	"github.com/atotto/clipboard"
 )
 
 const (
@@ -45,6 +46,8 @@ const (
 	vmCmdCopyIdHelp              = "Usage: `onapp vm copy-id <id>`"
 	vmCmdClearCacheDescription   = "Clears the cache used by this CLI"
 	vmCmdClearCacheHelp          = "Usage: `onapp vm clear-cache`"
+	vmCmdPassDescription         = "Copies the VM password to the clipboard (or sends it to stdout)"
+	vmCmdPassHelp                = "Usage: `onapp vm pass <id>`, will copy the password to clipboard"
 )
 
 // Base command
@@ -62,6 +65,7 @@ var vmCmdHandlers = map[string]cmdHandler{
 	"copy-id":     vmCmdCopyId{},
 	"vnc":         vmCmdVnc{},
 	"clear-cache": vmCmdClearCache{},
+	"pass":        vmCmdPass{},
 }
 
 func (c vmCmd) Run(args []string, ctx *cli) error {
@@ -670,4 +674,29 @@ func (ctx *cli) checkVmBusy(id int) error {
 		}
 	}
 	return nil
+}
+
+// pass command
+type vmCmdPass struct{}
+
+func (c vmCmdPass) Run(args []string, ctx *cli) error {
+	if len(args) == 0 {
+		c.Help(args)
+		return nil
+	}
+
+	vm, err := ctx.findVm(args[0], true)
+	if err != nil {
+		return err
+	}
+
+	return clipboard.WriteAll(vm.RootPassword)
+}
+
+func (c vmCmdPass) Description() string {
+	return vmCmdPassDescription
+}
+
+func (c vmCmdPass) Help(args []string) {
+	log.Infoln(vmCmdPassHelp)
 }
