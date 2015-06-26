@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -130,8 +129,7 @@ func loadConfig() (*config, error) {
 		return conf, err
 	}
 
-	flag.StringVar(&conf.ConfigFile, "configFile", fmt.Sprintf("%s%c.onapp", u.HomeDir, os.PathSeparator), "Path to config file")
-	flag.Parse()
+	conf.ConfigFile = fmt.Sprintf("%s%c.onapp", u.HomeDir, os.PathSeparator)
 
 	_, err = os.Stat(conf.ConfigFile)
 	var merge *config

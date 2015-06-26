@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+
 	"github.com/alexzorin/onapp/log"
 )
 
@@ -59,5 +60,4 @@ func (c helpCmd) Description() string {
 
 func (c helpCmd) Help(args []string) {
 	log.Infoln(helpCmdHelp, "\n")
-	printUsage()
 }
