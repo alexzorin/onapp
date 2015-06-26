@@ -71,7 +71,6 @@ var vmCmdHandlers = map[string]cmdHandler{
 func (c vmCmd) Run(args []string, ctx *cli) error {
 	if len(args) == 0 {
 		log.Infoln("This command does nothing when invoked on its own.")
-		cmdHandlers["help"].Run([]string{"vm"}, ctx)
 		return nil
 	} else {
 		return ctx.subhandle(c, args)

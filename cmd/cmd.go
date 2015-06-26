@@ -35,7 +35,6 @@ type cmdHandlerSubhandlers interface {
 var cmdHandlers = map[string]cmdHandler{
 	"config": configCmd{},
 	"vm":     vmCmd{},
-	"help":   helpCmd{},
 }
 
 func (c *cli) setup() {
