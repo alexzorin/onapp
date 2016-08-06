@@ -16,10 +16,10 @@ import (
 	"syscall"
 	"time"
 
-	"code.google.com/p/go.crypto/ssh"
 	"github.com/alexzorin/onapp"
 	"github.com/alexzorin/onapp/log"
 	"github.com/atotto/clipboard"
+	"golang.org/x/crypto/ssh"
 )
 
 const (
