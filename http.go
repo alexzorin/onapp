@@ -39,6 +39,20 @@ func (c *Client) postReq(body string, path ...string) ([]byte, error, int) {
 	return c.readResponse(resp)
 }
 
+func (c *Client) deleteReq(path ...string) ([]byte, error, int) {
+	url := c.makeUri(path...)
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return nil, err, -1
+	}
+	req.SetBasicAuth(c.apiUser, c.apiPassword)
+	resp, err := cl.Do(req)
+	if err != nil {
+		return nil, err, -1
+	}
+	return c.readResponse(resp)
+}
+
 func (c *Client) readResponse(resp *http.Response) ([]byte, error, int) {
 	defer resp.Body.Close()
 	data, err := ioutil.ReadAll(resp.Body)

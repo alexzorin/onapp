@@ -2,6 +2,8 @@ package onapp
 
 import (
 	"encoding/json"
+	"fmt"
+	"net/http"
 	"strconv"
 )
 
@@ -54,4 +56,15 @@ func (c *Client) GetVirtualMachineBackups(vmId int) (Backups, error) {
 		backups[i] = out[i]["backup"]
 	}
 	return backups, nil
+}
+
+func (c *Client) DeleteVirtualMachineBackup(id int) error {
+	_, err, st := c.deleteReq("/backups/", strconv.Itoa(id), ".json")
+	if err != nil {
+		return err
+	}
+	if st != http.StatusNoContent {
+		return fmt.Errorf("Expected 204, got %d", st)
+	}
+	return nil
 }
